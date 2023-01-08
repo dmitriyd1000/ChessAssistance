@@ -60,6 +60,8 @@ namespace BerldChess.View
 
         #endregion
 
+        public Bitmap BoardSnapshot;
+
         private void OnMenuItemLevelClick(object sender, EventArgs e)
         {
             var levelDialog = new FormLevelDialog(SerializedInfo.Instance.Level);
@@ -2991,5 +2993,13 @@ namespace BerldChess.View
         }
 
         #endregion
+
+        private void getBoardToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FormSnapshot formSnapshot = new FormSnapshot();
+            formSnapshot.InstanceRef = this;
+            formSnapshot.Show();
+            var i = 1;
+        }
     }
 }

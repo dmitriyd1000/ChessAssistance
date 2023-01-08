@@ -101,6 +101,12 @@
     <Compile Include="Source\Model\Recognizer.cs" />
     <Compile Include="Source\Model\SerializedInfo.cs" />
     <Compile Include="Source\ViewModel\FormMainViewModel.cs" />
+    <Compile Include="Source\View\FormSnapshot.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Source\View\FormSnapshot.Designer.cs">
+      <DependentUpon>FormSnapshot.cs</DependentUpon>
+    </Compile>
     <Compile Include="Source\View\MoveArrow.cs" />
     <Compile Include="Source\View\MoveArrowDrawInfo.cs" />
     <Compile Include="Source\View\ChessPanel.cs">
@@ -191,6 +197,9 @@
     </Compile>
     <EmbeddedResource Include="Source\View\FormPgnLoader.resx">
       <DependentUpon>FormPgnLoader.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Source\View\FormSnapshot.resx">
+      <DependentUpon>FormSnapshot.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Source\View\FormSquareColor.resx">
       <DependentUpon>FormSquareColor.cs</DependentUpon>
