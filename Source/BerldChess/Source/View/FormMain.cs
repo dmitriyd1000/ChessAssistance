@@ -51,11 +51,6 @@ namespace BerldChess.View
             InitializeEvaluationGrid();
             InitializeEngine();
 
-            if (_menuItemCheatMode.Checked)
-            {
-                Recognizer.SearchBoard(SerializedInfo.Instance.EngineLightSquare,
-                    SerializedInfo.Instance.EngineDarkSquare);
-            }
         }
 
         #endregion
@@ -811,55 +806,6 @@ namespace BerldChess.View
             Recognizer.UpdateBoardImage(currentImage);
 
             _moveOnHold = null;
-        }
-
-        private void OnMenuItemUpdateClick(object sender, EventArgs e)
-        {
-            if (!Recognizer.BoardFound)
-            {
-                if (!Recognizer.SearchBoard(SerializedInfo.Instance.EngineLightSquare,
-                    SerializedInfo.Instance.EngineDarkSquare))
-                {
-                    MessageBox.Show(@"No board found!", @"BerldChess", MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                }
-            }
-            else
-            {
-                Recognizer.UpdateBoardImage();
-            }
-        }
-
-        private void OnMenuItemSquareColorsClick(object sender, EventArgs e)
-        {
-            var images = new Bitmap[Screen.AllScreens.Length];
-
-            for (var i = 0; i < images.Length; i++)
-            {
-                images[i] = Recognizer.GetScreenshot(Screen.AllScreens[i]);
-            }
-
-            var squareColorDialog = new FormSquareColor(images);
-            squareColorDialog.ShowDialog();
-
-            if (squareColorDialog.DarkSquareColor != null)
-            {
-                SerializedInfo.Instance.EngineDarkSquare = (Color)squareColorDialog.DarkSquareColor;
-            }
-
-            if (squareColorDialog.LightSquareColor != null)
-            {
-                SerializedInfo.Instance.EngineLightSquare = (Color)squareColorDialog.LightSquareColor;
-            }
-        }
-
-        private void OnMenuItemResetClick(object sender, EventArgs e)
-        {
-            if (!Recognizer.SearchBoard(SerializedInfo.Instance.EngineLightSquare,
-                SerializedInfo.Instance.EngineDarkSquare))
-            {
-                MessageBox.Show(@"No board found!", @"BerldChess", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
         }
 
         private void OnMenuItemPiecesClick(object sender, EventArgs e)
@@ -2233,11 +2179,6 @@ namespace BerldChess.View
             _playerTimes[0].Reset();
             _playerTimes[1].Reset();
 
-            if (_menuItemCheatMode.Checked)
-            {
-                Recognizer.UpdateBoardImage();
-            }
-
             _vm.Game = newGame;
             _vm.PlyList.Clear();
             _vm.PlyList.Add(new ChessPly(_vm.Game.GetFen()));
@@ -2617,11 +2558,6 @@ namespace BerldChess.View
                 return false;
             }
 
-            if (cheatMove)
-            {
-                Recognizer.UpdateBoardImage();
-            }
-
             _evaluationEnabled = false;
             _engineEvalArrows.Clear();
 
@@ -2998,8 +2934,13 @@ namespace BerldChess.View
         {
             FormSnapshot formSnapshot = new FormSnapshot();
             formSnapshot.InstanceRef = this;
-            formSnapshot.Show();
-            var i = 1;
+            formSnapshot.ShowDialog();
+
+            if (formSnapshot.boardSnapshot != null)
+            {
+                Recognizer.UpdateBoardImage(formSnapshot.boardSnapshot);
+                Recognizer.DetectPieces();
+            }
         }
     }
 }

@@ -236,6 +236,10 @@
       <Project>{44e30db3-db05-4e3b-a74d-1caf8acaa444}</Project>
       <Name>ChessEngineInterface</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DarknetYolo\DarknetYolo.csproj">
+      <Project>{7dabb117-1fc1-42b9-a385-b3786a85b025}</Project>
+      <Name>DarknetYolo</Name>
+    </ProjectReference>
     <ProjectReference Include="..\pgn.Data\pgn.Data.csproj">
       <Project>{29143ecd-e5d3-41d4-9c62-81d82597d895}</Project>
       <Name>pgn.Data</Name>

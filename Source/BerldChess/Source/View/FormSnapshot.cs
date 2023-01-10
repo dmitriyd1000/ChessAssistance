@@ -12,59 +12,6 @@ namespace BerldChess.View
         #region:::::::::::::::::::::::::::::::::::::::::::Form level declarations:::::::::::::::::::::::::::::::::::::::::::
 
         public Bitmap boardSnapshot;
-        public enum CursPos : int
-        {
-
-            WithinSelectionArea = 0,
-            OutsideSelectionArea,
-            TopLine,
-            BottomLine,
-            LeftLine,
-            RightLine,
-            TopLeft,
-            TopRight,
-            BottomLeft,
-            BottomRight
-
-        }
-
-        public enum ClickAction : int
-        {
-
-            NoClick = 0,
-            Dragging,
-            Outside,
-            TopSizing,
-            BottomSizing,
-            LeftSizing,
-            TopLeftSizing,
-            BottomLeftSizing,
-            RightSizing,
-            TopRightSizing,
-            BottomRightSizing
-
-        }
-
-        public ClickAction CurrentAction;
-        public bool LeftButtonDown = false;
-        public bool RectangleDrawn = false;
-        public bool ReadyToDrag = false;
-
-        public Point ClickPoint = new Point();
-        public Point CurrentTopLeft = new Point();
-        public Point CurrentBottomRight = new Point();
-        public Point DragClickRelative = new Point();
-
-        public int RectangleHeight = new int();
-        public int RectangleWidth = new int();
-
-        Screen screen;
-
-        Graphics g;
-        Pen MyPen = new Pen(Color.Black, 1);
-        SolidBrush TransparentBrush = new SolidBrush(Color.White);
-        Pen EraserPen = new Pen(Color.FromArgb(255, 255, 192), 1);
-        SolidBrush eraserBrush = new SolidBrush(Color.FromArgb(255, 255, 192));
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
@@ -99,11 +46,9 @@ namespace BerldChess.View
         {
             InitializeComponent();
             this.MouseDoubleClick += new MouseEventHandler(mouse_DClick);
-            screen = Screen.FromControl(this);
         }
         #endregion
-
-
+        
 
         public void SaveSelection()
         {

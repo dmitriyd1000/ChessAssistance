@@ -1,11 +1,11 @@
-﻿using BerldChess.View;
-using ChessDotNet;
+﻿using ChessDotNet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using DarknetYolo;
 
 namespace BerldChess.Model
 {
@@ -27,19 +27,28 @@ namespace BerldChess.Model
         public static Size BoardSize { get; private set; }
         public static SizeF FieldSize { get; set; }
 
+        private class CellBoard
+        {
+            private Bitmap bitmap;
+            private float  avgGrayColor;
+            private string recognPiece;
+            private string squareColor;
+            private string pieceColor;
+
+            private float CalcAvgGrayColor()
+            {
+                if (bitmap != null)
+                {
+                    
+                }
+            }
+        }
+
         private static Bitmap[] PieceImages { get; set; } = new Bitmap[12];
 
         #endregion
 
         #region Methods
-
-        public static void UpdateBoardImage()
-        {
-            if (BoardFound)
-            {
-                _lastBoardSnap = GetBoardSnap();
-            }
-        }
 
         public static void UpdateBoardImage(Bitmap image)
         {
@@ -49,74 +58,36 @@ namespace BerldChess.Model
             }
         }
 
-        public static bool SearchBoard(Color lightSquareColor, Color darkSquareColor)
+        public static void DetectPieces()
         {
-            for (int i = 0; i < Screen.AllScreens.Length; i++)
+            if (_lastBoardSnap == null)
+                return;
+            var cellSizeWidth = (int) _lastBoardSnap.Width / 8;
+            var cellSizeHeight = (int) _lastBoardSnap.Height / 8;
+            var startCurrRow = 0;
+            var startCurrColumn = 0;
+            CellBoard[][] cellsBoard = new CellBoard[8][]
             {
-                if (SearchBoard(GetScreenshot(Screen.AllScreens[i]), darkSquareColor, lightSquareColor))
-                {
-                    if (BoardSize.Width < MinimumSize || BoardSize.Height < MinimumSize)
-                    {
-                        return false;
-                    }
-
-                    BoardFound = true;
-                    ScreenIndex = i;
-                    _lastBoardSnap = GetBoardSnap();
-
-
-                    DetectPieces(_lastBoardSnap, lightSquareColor, darkSquareColor);
-
-                    FormSquareColor form = new FormSquareColor(new Bitmap[] { PieceImages[7] });
-                    form.Show();
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static void DetectPieces(Bitmap image, Color lightSquareColor, Color darkSquareColor)
-        {
-            unsafe
+                new CellBoard[8], new CellBoard[8], new CellBoard[8], new CellBoard[8], new CellBoard[8],
+                new CellBoard[8], new CellBoard[8], new CellBoard[8]
+            };
+            
+            DarknetYOLO darknetYolo = new DarknetYOLO();
+            darknetYolo.NMSThreshold = 0.4f;
+            darknetYolo.ConfidenceThreshold = 0.5f;
+            // split in cells
+            for (int row = 0; row < 8; row++)
             {
-                BitmapData imageData = LockBits(image);
-                var scan0 = (byte*)imageData.Scan0;
-                var width = imageData.Stride / 3;
-
-                for (int y = 0; y < imageData.Height; y++)
+                startCurrRow = cellSizeHeight * row;
+                for (int column = 0; column < 8; column++)
                 {
-                    for (int x = 0; x < width; x++)
-                    {
-                        var pointer = scan0 + imageData.Stride * y + 3 * x;
-
-                        if (Match(pointer, lightSquareColor) || Match(pointer, darkSquareColor))
-                        {
-                            pointer[0] = 255;
-                            pointer[1] = 0;
-                            pointer[2] = 255;
-                        }
-                    }
-                }
-
-                image.UnlockBits(imageData);
-
-                Point[] piecePositions = new Point[]
-                {
-                    new Point(4, 7), new Point(3, 7), new Point(0, 7), new Point(2, 7), new Point(1, 7),
-                    new Point(4, 0), new Point(3, 0), new Point(0, 0), new Point(2, 0), new Point(1, 0)
-                };
-
-                for (int i = 0; i < piecePositions.Length; i++)
-                {
-                    Rectangle rect = new Rectangle(
-                        (int)(piecePositions[i].X * FieldSize.Width),
-                        (int)(piecePositions[i].Y * FieldSize.Height),
-                        (int)(FieldSize.Width * 0.98),
-                        (int)(FieldSize.Height * 0.98));
-
-                    Bitmap pieceImage = image.Clone(rect, image.PixelFormat);
-                    PieceImages[i] = pieceImage;
+                    startCurrColumn = cellSizeWidth * column;
+                                 Rectangle rect =
+                                     new Rectangle(startCurrRow, startCurrColumn,
+                                                    cellSizeWidth, cellSizeHeight);
+                    Bitmap cellImage = _lastBoardSnap.Clone(rect, _lastBoardSnap.PixelFormat);
+                    // define 
+                    List<YoloPrediction> results = darknetYolo.Predict(cellImage, 512, 512);
                 }
             }
         }
@@ -124,8 +95,8 @@ namespace BerldChess.Model
         private static unsafe bool Match(byte* pointer, Color color)
         {
             return pointer[0] == color.B &&
-                pointer[1] == color.G &&
-                pointer[2] == color.R;
+                   pointer[1] == color.G &&
+                   pointer[2] == color.R;
         }
 
         public static GameCreationData GetCurrentState()
@@ -309,144 +280,6 @@ namespace BerldChess.Model
             }
 
             return scrennshot;
-        }
-
-        public static Bitmap GetScreenshot(Screen screen)
-        {
-            Bitmap screenshot = new Bitmap(screen.Bounds.Width, screen.Bounds.Height, PixelFormat.Format24bppRgb);
-
-            using (Graphics g = Graphics.FromImage(screenshot))
-            {
-                g.CopyFromScreen(screen.Bounds.X, screen.Bounds.Y, 0, 0, screen.Bounds.Size, CopyPixelOperation.SourceCopy);
-            }
-
-            return screenshot;
-        }
-
-        private static bool SearchBoard(Bitmap image, Color darkSquareColor, Color lightSquareColor)
-        {
-            BitmapData imageData = LockBits(image);
-
-            bool matchFound = false;
-            bool widthFound = false;
-            bool heightFound = false;
-            Rectangle board = new Rectangle(-1, -1, 0, 0);
-            const int matchTolerance = 0;
-            int initialTolerance = 4;
-            int tolerance = -1;
-            int imageWidth = image.Width * 3;
-            int imageHeight = image.Height;
-
-            unsafe
-            {
-                byte* imagePointer = (byte*)(void*)imageData.Scan0;
-                byte* startPointer = null;
-
-                if (imagePointer == null)
-                {
-                    image.UnlockBits(imageData);
-                    return false;
-                }
-
-                for (int y = 0; y < imageHeight; y++)
-                {
-                    for (int x = 0; x < image.Width; x++)
-                    {
-                        Color pixelColor = Color.FromArgb(imagePointer[2], imagePointer[1], imagePointer[0]);
-
-                        if (IsSameColor(pixelColor, lightSquareColor, matchTolerance) || IsSameColor(pixelColor, darkSquareColor, matchTolerance))
-                        {
-                            if (tolerance > 0)
-                            {
-                                tolerance = initialTolerance;
-                            }
-
-                            if (!matchFound)
-                            {
-                                board.X = x;
-                                board.Y = y;
-                                startPointer = imagePointer;
-                                matchFound = true;
-                            }
-                            else if (!widthFound)
-                            {
-                                board.Width++;
-                            }
-                            else
-                            {
-                                board.Height++;
-                            }
-                        }
-                        else
-                        {
-                            if (tolerance == -1 && matchFound)
-                            {
-                                initialTolerance = (int)Math.Ceiling(board.Width / 10.0);
-                                tolerance = initialTolerance;
-                            }
-
-                            if (tolerance > 0)
-                            {
-                                tolerance--;
-
-                                if (widthFound)
-                                {
-                                    board.Height++;
-                                }
-                                else
-                                {
-                                    board.Width++;
-                                }
-                            }
-
-                            if (widthFound && tolerance == 0)
-                            {
-                                heightFound = true;
-                                board.Height -= initialTolerance;
-                                break;
-                            }
-
-                            if (matchFound && tolerance == 0)
-                            {
-                                widthFound = true;
-                                board.Width -= initialTolerance;
-                                tolerance = -1;
-
-                                imagePointer = startPointer;
-                                imagePointer -= imageWidth;
-                                y = board.Y;
-                                break;
-                            }
-                        }
-
-                        if (!widthFound)
-                        {
-                            imagePointer += 3;
-                        }
-                        else
-                            break;
-                    }
-
-                    if (widthFound)
-                    {
-                        imagePointer += imageWidth;
-                    }
-
-                    if (heightFound)
-                        break;
-                }
-            }
-
-            image.UnlockBits(imageData);
-
-            if (heightFound)
-            {
-                BoardLocation = new Point(board.X, board.Y);
-                BoardSize = new Size(board.Width, board.Height);
-                FieldSize = new SizeF(BoardSize.Width / (float)SideLength, BoardSize.Height / (float)SideLength);
-            }
-
-            return heightFound;
         }
 
         private static bool IsSameColor(Color color1, Color color2, int tolerance)

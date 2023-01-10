@@ -12,37 +12,39 @@ using Emgu.CV.Structure;
 using DarknetYolo.Models;
 using System.IO;
 using System.Runtime.InteropServices;
+using Emgu.CV;
 
 namespace DarknetYolo
 {
+    public class YoloPrediction
+    {
+        public Rectangle Rectangle { get; set; }
+        public string Label { get; set; }
+        public double Confidence { get; set; }
+    }
+    
     public class DarknetYOLO
     {
-        /// <summary>
         /// Model to load
-        /// </summary>
         public Net Network { get; set; }
-
-        /// <summary>
+        
         /// Prediction confidence threshold
-        /// </summary>
         public float ConfidenceThreshold { get; set; }
-
-        /// <summary>
+        
         /// Non-Max Suppression Threshold
-        /// </summary>
         public float NMSThreshold { get; set; }
 
         private string[] _labels;
-
-        /// <summary>
+        
         /// Initialize Darknet network.
-        /// </summary>
         /// <param name="labelsPath">Path to the labels file.</param>
         /// <param name="weightsPath">Path to the weights file.</param>
         /// <param name="configPath">Path to the config file.</param>
         /// <param name="backend">Preferred computation implementation.</param>
         /// <param name="target">Preferred computation target.</param>
-        public DarknetYOLO(string labelsPath, string weightsPath, string configPath, PreferredBackend backend = PreferredBackend.OpenCV, PreferredTarget target = PreferredTarget.Cpu)
+        
+        public DarknetYOLO(string labelsPath = @".\labels.names", string weightsPath=@".\yolov4-tiny-custom_best.weights",
+            string configPath=@".\yolov4-tiny-custom.cfg", PreferredBackend backend = PreferredBackend.OpenCV, PreferredTarget target = PreferredTarget.Cpu)
         {
             Enum.TryParse(backend.ToString(), out Emgu.CV.Dnn.Backend b);
             Enum.TryParse(target.ToString(), out Emgu.CV.Dnn.Target t);
@@ -87,32 +89,7 @@ namespace DarknetYolo
             VectorOfMat layerOutputs = new VectorOfMat();
             string[] outNames = Network.UnconnectedOutLayersNames;
             var blob = DnnInvoke.BlobFromImage(inputImage.ToImage<Bgr, byte>(), 1/255f, new System.Drawing.Size(resizedWidth, resizedHeight), swapRB: true, crop: false);
-            
-            Mat flat2 = new Mat();
-            var arr1 = blob.GetData(false);
-            int len1 = resizedWidth * resizedHeight * 3;
-            byte[] imageData = new byte[len1];
-            int x1 = 0;
-            foreach (var el1 in arr1)
-            {
-                var i = el1.GetHashCode();
-                imageData[x1] = (byte)Math.Round((float)el1);
-                x1++;
-            }
-            
-            
-            int columns = resizedWidth;
-            int rows = resizedHeight;
-            int stride = 3*resizedWidth;
-            //byte[] newbytes = PadLines(imageData, rows, columns);
 
-            Bitmap img = new Bitmap(columns, rows, stride, 
-                PixelFormat.Format24bppRgb, 
-                Marshal.UnsafeAddrOfPinnedArrayElement(imageData, 0));
-            
-            img.Save(@"..\..\Resources\tempimage.bmp");
-            
-            
             Network.SetInput(blob);
             Network.Forward(layerOutputs, outNames);
 
