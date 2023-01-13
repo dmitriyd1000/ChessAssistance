@@ -2941,6 +2941,9 @@ namespace BerldChess.View
                 Recognizer.UpdateBoardImage(formSnapshot.boardSnapshot);
                 Recognizer.DetectPieces();
             }
+            
+            if (Recognizer.newChessBoard!=null)
+                ResetGame(Recognizer.newChessBoard);
         }
     }
 }

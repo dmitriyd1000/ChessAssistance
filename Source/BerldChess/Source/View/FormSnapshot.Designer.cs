@@ -38,15 +38,20 @@ namespace BerldChess.View
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Info;
-            this.ClientSize = new System.Drawing.Size(806, 474);
+            this.ClientSize = new System.Drawing.Size(816, 514);
             this.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FormSnapshot";
-            this.Opacity = 0.7D;
+            this.Opacity = 0.8D;
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "FormSnapshot";
+            this.Text = "Area for snapshot";
             this.TopMost = true;
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseUp);
             this.ResumeLayout(false);
         }
 

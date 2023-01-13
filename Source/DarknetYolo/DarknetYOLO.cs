@@ -43,8 +43,8 @@ namespace DarknetYolo
         /// <param name="backend">Preferred computation implementation.</param>
         /// <param name="target">Preferred computation target.</param>
         
-        public DarknetYOLO(string labelsPath = @".\labels.names", string weightsPath=@".\yolov4-tiny-custom_best.weights",
-            string configPath=@".\yolov4-tiny-custom.cfg", PreferredBackend backend = PreferredBackend.OpenCV, PreferredTarget target = PreferredTarget.Cpu)
+        public DarknetYOLO(string labelsPath = @".\labels.names", string weightsPath=@".\yolov4-tiny-customBW_best.weights",
+            string configPath=@".\yolov4-tiny-customBW.cfg", PreferredBackend backend = PreferredBackend.OpenCV, PreferredTarget target = PreferredTarget.Cpu)
         {
             Enum.TryParse(backend.ToString(), out Emgu.CV.Dnn.Backend b);
             Enum.TryParse(target.ToString(), out Emgu.CV.Dnn.Target t);

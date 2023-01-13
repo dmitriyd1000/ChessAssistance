@@ -12,6 +12,9 @@ namespace BerldChess.View
         #region:::::::::::::::::::::::::::::::::::::::::::Form level declarations:::::::::::::::::::::::::::::::::::::::::::
 
         public Bitmap boardSnapshot;
+        private int oldPosX;
+        private int oldPosY;
+        private bool mouseDown;
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
@@ -59,7 +62,8 @@ namespace BerldChess.View
             System.Threading.Thread.Sleep(250);
 
             //boardSnapshot = new Bitmap(this.Width-18, this.Height);
-            float scalingFactor = getScalingFactor();
+            //Screen.FromControl(this).
+            float scalingFactor = getScalingFactor(Screen.FromControl(this));
             Size s1 = this.Size;
             s1.Width = (int) Math.Round(s1.Width*scalingFactor - 18);
             s1.Height = (int) Math.Round(s1.Height*scalingFactor);
@@ -67,7 +71,7 @@ namespace BerldChess.View
             Graphics graphics = Graphics.FromImage(boardSnapshot as Image);
             graphics.CopyFromScreen((int) Math.Round(this.Location.X*scalingFactor+10), 
                 (int) Math.Round(this.Location.Y*scalingFactor), 0, 0, s1);
-            boardSnapshot.Save(@"C:\Users\dmytro.dmytriiev\source\repos\BerldChess\Source\BerldChess\Resources\Images\snapshot.bmp");
+            //boardSnapshot.Save(@"C:\Users\dmytro.dmytriiev\source\repos\BerldChess\Source\BerldChess\Resources\Images\snapshot.bmp");
             /* using (MemoryStream s = new MemoryStream())
             {
                 //save graphic variable into memory
@@ -77,13 +81,15 @@ namespace BerldChess.View
             } */ 
             
             this.Hide();
-            this.InstanceRef.Activate();
         }
         
         private void mouse_DClick(object sender, MouseEventArgs e)
         {
             SaveSelection();
         }
+        
+        [DllImport("gdi32.dll")]
+        static extern IntPtr CreateDC(string lpszDriver, string lpszDevice, string lpszOutput, IntPtr lpInitData);
         
         [DllImport("gdi32.dll")]
         static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
@@ -95,16 +101,39 @@ namespace BerldChess.View
             // http://pinvoke.net/default.aspx/gdi32/GetDeviceCaps.html
         }
         
-        private float getScalingFactor()
+        private float getScalingFactor(Screen s)
         {
-            Graphics g = Graphics.FromHwnd(this.Handle);
-            IntPtr desktop = g.GetHdc();
+            IntPtr desktop = CreateDC(null,s.DeviceName,null, IntPtr.Zero);
             int LogicalScreenHeight = GetDeviceCaps(desktop, (int)DeviceCap.VERTRES);
             int PhysicalScreenHeight = GetDeviceCaps(desktop, (int)DeviceCap.DESKTOPVERTRES); 
 
             float ScreenScalingFactor = (float)PhysicalScreenHeight / (float)LogicalScreenHeight;
 
-            return ScreenScalingFactor; // 1.25 = 125%
+            return ScreenScalingFactor;
+        }
+
+        private void FormSnapshot_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (mouseDown)
+            {
+                this.Left = System.Windows.Forms.Cursor.Position.X - oldPosX;
+                this.Top = System.Windows.Forms.Cursor.Position.Y - oldPosY;
+            }
+        }
+
+        private void FormSnapshot_MouseDown(object sender, MouseEventArgs e)
+        {
+            oldPosX = System.Windows.Forms.Cursor.Position.X - this.Left;
+            oldPosY = System.Windows.Forms.Cursor.Position.Y - this.Top;
+            mouseDown = true;
+            this.Cursor = Cursors.NoMove2D;
+        }
+
+
+        private void FormSnapshot_MouseUp(object sender, MouseEventArgs e)
+        {
+            mouseDown = false;
+            this.Cursor = Cursors.Arrow;
         }
     }
 }
