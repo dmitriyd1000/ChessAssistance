@@ -440,7 +440,7 @@
             this._menuStripMain.Name = "_menuStripMain";
             this._menuStripMain.Padding = new System.Windows.Forms.Padding(5, 5, 5, 2);
             this._menuStripMain.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-            this._menuStripMain.Size = new System.Drawing.Size(1348, 39);
+            this._menuStripMain.Size = new System.Drawing.Size(1346, 39);
             this._menuStripMain.TabIndex = 1;
             // 
             // _panelRight
@@ -455,7 +455,7 @@
             this._panelRight.Location = new System.Drawing.Point(0, 0);
             this._panelRight.Margin = new System.Windows.Forms.Padding(4);
             this._panelRight.Name = "_panelRight";
-            this._panelRight.Size = new System.Drawing.Size(686, 837);
+            this._panelRight.Size = new System.Drawing.Size(686, 829);
             this._panelRight.TabIndex = 4;
             // 
             // tabTables
@@ -772,8 +772,8 @@
             // _splitContainerBoard.Panel2
             // 
             this._splitContainerBoard.Panel2.Controls.Add(this._dataGridViewEvaluation);
-            this._splitContainerBoard.Size = new System.Drawing.Size(659, 837);
-            this._splitContainerBoard.SplitterDistance = 769;
+            this._splitContainerBoard.Size = new System.Drawing.Size(657, 829);
+            this._splitContainerBoard.SplitterDistance = 762;
             this._splitContainerBoard.TabIndex = 0;
             this._splitContainerBoard.TabStop = false;
             // 
@@ -810,7 +810,7 @@
             this._dataGridViewEvaluation.ShowCellErrors = false;
             this._dataGridViewEvaluation.ShowEditingIcon = false;
             this._dataGridViewEvaluation.ShowRowErrors = false;
-            this._dataGridViewEvaluation.Size = new System.Drawing.Size(657, 62);
+            this._dataGridViewEvaluation.Size = new System.Drawing.Size(655, 61);
             this._dataGridViewEvaluation.TabIndex = 1;
             // 
             // _splitContainerMain
@@ -829,8 +829,8 @@
             // 
             this._splitContainerMain.Panel2.Controls.Add(this._panelRight);
             this._splitContainerMain.Panel2MinSize = 200;
-            this._splitContainerMain.Size = new System.Drawing.Size(1348, 837);
-            this._splitContainerMain.SplitterDistance = 659;
+            this._splitContainerMain.Size = new System.Drawing.Size(1346, 829);
+            this._splitContainerMain.SplitterDistance = 657;
             this._splitContainerMain.SplitterWidth = 3;
             this._splitContainerMain.TabIndex = 5;
             // 
@@ -839,7 +839,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1348, 879);
+            this.ClientSize = new System.Drawing.Size(1346, 871);
             this.Controls.Add(this._splitContainerMain);
             this.Controls.Add(this._menuStripMain);
             this.DoubleBuffered = true;
