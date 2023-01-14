@@ -8,6 +8,7 @@ using ilf.pgn.Data;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -26,6 +27,7 @@ using Color = System.Drawing.Color;
 using File = System.IO.File;
 using Move = ilf.pgn.Data.Move;
 using MoveType = ChessDotNet.MoveType;
+using DarknetYolo;
 
 namespace BerldChess.View
 {
@@ -54,35 +56,11 @@ namespace BerldChess.View
         }
 
         #endregion
+        
+       
+        //private  CancellationTokenSource cancellationTokenStopRecogntion;
 
-        public Bitmap BoardSnapshot;
-
-        private void OnMenuItemLevelClick(object sender, EventArgs e)
-        {
-            var levelDialog = new FormLevelDialog(SerializedInfo.Instance.Level);
-            if (levelDialog.ShowDialog() != DialogResult.OK)
-            {
-                return;
-            }
-
-            SerializedInfo.Instance.Level = levelDialog.Level;
-            SetLevel();
-        }
-
-        private void OnMenuItemTimeAnalysisClick(object sender, EventArgs e)
-        {
-            if (GetPlayingEngine() == null)
-            {
-                return;
-            }
-
-            var input = Interaction.InputBox("Enter Time per ply in ms:", "BerldChess - Time Analysis");
-
-            if (int.TryParse(input, out var time))
-            {
-                StartTimeAnalysis(time);
-            }
-        }
+        
 
         private void SetLevel()
         {
@@ -111,7 +89,8 @@ namespace BerldChess.View
         }
 
         #region Fields
-
+        
+        internal static DarknetYOLO darknetYolo => new DarknetYOLO();
         private bool _totalChartView;
         private volatile bool _evaluationEnabled = true;
         private volatile bool _updateAfterAnimation;
@@ -130,7 +109,7 @@ namespace BerldChess.View
         private readonly Color _darkModeColor = Color.FromArgb(49, 46, 43);
         private readonly Color _selectionColor = Color.FromArgb(160, 177, 199, 208);
         private Bitmap _comparisonSnap;
-        private ChessPanel _chessPanel;
+        internal ChessPanel _chessPanel;
         private readonly Stopwatch[] _playerTimes = { new Stopwatch(), new Stopwatch() };
         private readonly SoundPlayer _movePlayer = new SoundPlayer(Resources.Move);
         private readonly SoundPlayer _castlingPlayer = new SoundPlayer(Resources.Castling);
@@ -285,6 +264,33 @@ namespace BerldChess.View
         #endregion
 
         #region Event Methods
+        
+        private void OnMenuItemLevelClick(object sender, EventArgs e)
+        {
+            var levelDialog = new FormLevelDialog(SerializedInfo.Instance.Level);
+            if (levelDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            SerializedInfo.Instance.Level = levelDialog.Level;
+            SetLevel();
+        }
+
+        private void OnMenuItemTimeAnalysisClick(object sender, EventArgs e)
+        {
+            if (GetPlayingEngine() == null)
+            {
+                return;
+            }
+
+            var input = Interaction.InputBox("Enter Time per ply in ms:", "BerldChess - Time Analysis");
+
+            if (int.TryParse(input, out var time))
+            {
+                StartTimeAnalysis(time);
+            }
+        }
 
         private void OnEngineSelected()
         {
@@ -644,7 +650,6 @@ namespace BerldChess.View
 
             if (_menuItemCheatMode.Checked)
             {
-                CheckExternBoard();
             }
         }
 
@@ -802,8 +807,6 @@ namespace BerldChess.View
                 _movePlayed = true;
                 GetPlayingEngine().RequestStop();
             }
-
-            Recognizer.UpdateBoardImage(currentImage);
 
             _moveOnHold = null;
         }
@@ -1426,6 +1429,17 @@ namespace BerldChess.View
                 SerializedInfo.Instance.ChessFonts[2].FontFamily = "Pixel";
             }
 
+            #region RecognitionSettings
+                chkbxCanBlackCastleQueenSide.Checked = SerializedInfo.Instance.chkbxCanBlackCastleQueenSide;
+                chkbxCanBlackCastleKingSide.Checked = SerializedInfo.Instance.chkbxCanBlackCastleKingSide;
+                chkbxCanWhiteCastleQueenSide.Checked = SerializedInfo.Instance.chkbxCanWhiteCastleQueenSide;
+                chkbxCanWhiteCastleKingSide.Checked = SerializedInfo.Instance.chkbxCanWhiteCastleKingSide;
+                chkbxEnPassant.Checked =  SerializedInfo.Instance.chkbxEnPassant;
+                numbxTolleranceRecogn.Value =  SerializedInfo.Instance.numbxTolleranceRecogn;
+                chkbxIsAutoRefresh.Checked =  SerializedInfo.Instance.chkbxIsAutoRefresh;
+                txtbxRefreshTime.Text = SerializedInfo.Instance.txtbxRefreshTime;
+            #endregion
+
             _engineDialog = new FormEngineSettings(SerializedInfo.Instance.EngineList);
             _engineDialog.EngineSelected += OnEngineSelected;
 
@@ -1524,88 +1538,7 @@ namespace BerldChess.View
                 Debug.WriteLine(ex.ToString());
             }
         }
-
-        private void CheckExternBoard()
-        {
-            if (_comparisonSnap == null)
-            {
-                _comparisonSnap = Recognizer.GetBoardSnap();
-                return;
-            }
-
-            var currentImage = Recognizer.GetBoardSnap();
-            var areSame = Recognizer.CompareBitmaps(currentImage, _comparisonSnap);
-
-            if (_updateAfterAnimation && areSame)
-            {
-                _updateAfterAnimation = false;
-                Recognizer.UpdateBoardImage(currentImage);
-                return;
-            }
-
-            if (areSame)
-            {
-                var changedSquares = Recognizer.GetChangedSquares(currentImage);
-
-                if (changedSquares == null || changedSquares.Length == 0)
-                {
-                    return;
-                }
-
-                var source = Point.Empty;
-                var destination = Point.Empty;
-
-                if (changedSquares.Length == 4)
-                {
-                    if (changedSquares[0].X == 4)
-                    {
-                        source = changedSquares[0];
-                        destination = changedSquares[2];
-                    }
-                    else
-                    {
-                        source = changedSquares[3];
-                        destination = changedSquares[1];
-                    }
-                }
-                else if (changedSquares.Length == 2)
-                {
-                    var piece = _chessPanel.Board[changedSquares[0].Y][changedSquares[0].X];
-
-                    if (piece != null && piece.Owner == _vm.Game.WhoseTurn)
-                    {
-                        source = changedSquares[0];
-                        destination = changedSquares[1];
-                    }
-                    else
-                    {
-                        source = changedSquares[1];
-                        destination = changedSquares[0];
-                    }
-                }
-
-                var args = new PieceMovedEventArgs(source, destination);
-
-
-                if (_menuItemCheckAuto.Checked)
-                {
-                    if (PlayMove(args, 'q', true))
-                    {
-                        _movePlayed = true;
-                        GetPlayingEngine().RequestStop();
-                    }
-
-                    Recognizer.UpdateBoardImage(currentImage);
-                }
-                else
-                {
-                    _moveOnHold = args;
-                }
-            }
-
-            _comparisonSnap = currentImage;
-        }
-
+        
         private void ClearEngines()
         {
             for (var i = 0; i < _vm.Engines.Length; i++)
@@ -2166,7 +2099,7 @@ namespace BerldChess.View
             }
         }
 
-        private void ResetGame(ChessGame newGame)
+        internal void ResetGame(ChessGame newGame)
         {
             var wasFinished = _vm.GameFinished;
 
@@ -2933,17 +2866,17 @@ namespace BerldChess.View
         private void getBoardToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FormSnapshot formSnapshot = new FormSnapshot();
-            formSnapshot.InstanceRef = this;
-            formSnapshot.ShowDialog();
+            formSnapshot.InstanceRef = (FormMain) this;
+            tabTables.SelectedTab = tabTables.TabPages["tabSnapshotSettings"];
+            //cancellationTokenStopRecogntion= new CancellationTokenSource();
+            formSnapshot.Show();
+        }
 
-            if (formSnapshot.boardSnapshot != null)
-            {
-                Recognizer.UpdateBoardImage(formSnapshot.boardSnapshot);
-                Recognizer.DetectPieces();
-            }
-            
-            if (Recognizer.newChessBoard!=null)
-                ResetGame(Recognizer.newChessBoard);
+        
+        private void btnCancelRecogn_Click(object sender, EventArgs e)
+        {
+           /* if (cancellationTokenStopRecogntion!=null)
+                cancellationTokenStopRecogntion.Cancel(); */
         }
     }
 }

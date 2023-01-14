@@ -31,14 +31,26 @@ namespace BerldChess.View
         /// </summary>
         private void InitializeComponent()
         {
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
+            // 
+            // label1
+            // 
+            this.label1.Font = new System.Drawing.Font("Segoe UI", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.label1.Location = new System.Drawing.Point(12, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(477, 131);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Cover this form your chess board. Double-click to save and close.";
             // 
             // FormSnapshot
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Info;
-            this.ClientSize = new System.Drawing.Size(816, 514);
+            this.ClientSize = new System.Drawing.Size(842, 618);
+            this.Controls.Add(this.label1);
             this.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -54,6 +66,8 @@ namespace BerldChess.View
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseUp);
             this.ResumeLayout(false);
         }
+
+        private System.Windows.Forms.Label label1;
 
         #endregion
     }

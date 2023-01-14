@@ -1,16 +1,15 @@
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using BerldChess.Model;
+using System.Threading;
 
 namespace BerldChess.View
 {
     public partial class FormSnapshot : Form
     {
         #region:::::::::::::::::::::::::::::::::::::::::::Form level declarations:::::::::::::::::::::::::::::::::::::::::::
-
         public Bitmap boardSnapshot;
         private int oldPosX;
         private int oldPosY;
@@ -28,8 +27,8 @@ namespace BerldChess.View
 
         }
 
-        private Form m_InstanceRef = null;
-        public Form InstanceRef
+        private FormMain m_InstanceRef = null;
+        public FormMain InstanceRef
         {
             get
             {
@@ -47,6 +46,11 @@ namespace BerldChess.View
         
         public FormSnapshot()
         {
+            if (SerializedInfo.Instance.FormSnapshotBounds != null)
+            {
+                Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;
+            }
+            
             InitializeComponent();
             this.MouseDoubleClick += new MouseEventHandler(mouse_DClick);
         }
@@ -56,7 +60,8 @@ namespace BerldChess.View
         public void SaveSelection()
         {
             
-            this.Hide();
+            SerializedInfo.Instance.FormSnapshotBounds = WindowState == FormWindowState.Maximized ? RestoreBounds : Bounds;
+            Hide();
 
             //Allow 250 milliseconds for the screen to repaint itself (we don't want to include this form in the capture)
             System.Threading.Thread.Sleep(250);
@@ -78,9 +83,21 @@ namespace BerldChess.View
                 boardSnapshot.Save(s, ImageFormat.Bmp);
                 //save snapshot for debug
                 boardSnapshot.Save(@"C:\Users\dmytro.dmytriiev\source\repos\BerldChess\Source\BerldChess\Resources\Images\snapshot.bmp");
-            } */ 
-            
-            this.Hide();
+            } */
+
+            if (boardSnapshot != null)
+            {
+                Work(boardSnapshot);
+            }
+        }
+        
+        private void Work(Bitmap boardBitmap)
+        {
+            Recognizer.DetectPieces(boardBitmap, FormMain.darknetYolo,  m_InstanceRef);
+            if (Recognizer._newChessBoard != null)
+            {
+                m_InstanceRef.ResetGame(Recognizer._newChessBoard);
+            }
         }
         
         private void mouse_DClick(object sender, MouseEventArgs e)
@@ -112,6 +129,8 @@ namespace BerldChess.View
             return ScreenScalingFactor;
         }
 
+        #region Events
+
         private void FormSnapshot_MouseMove(object sender, MouseEventArgs e)
         {
             if (mouseDown)
@@ -135,5 +154,7 @@ namespace BerldChess.View
             mouseDown = false;
             this.Cursor = Cursors.Arrow;
         }
+
+        #endregion
     }
 }

@@ -5,12 +5,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using BerldChess.View;
 using DarknetYolo;
 using ChessDotNet.Pieces;
-using ChessDotNet;
 
 namespace BerldChess.Model
 {
@@ -19,8 +18,7 @@ namespace BerldChess.Model
         #region Fields
 
         private const int SideLength = 8;
-        private static Bitmap _lastBoardSnap;
-        public static ChessGame newChessBoard = null;
+        public static ChessGame _newChessBoard = null;
 
         #endregion
 
@@ -166,20 +164,12 @@ namespace BerldChess.Model
 
         #region Methods
 
-        public static void UpdateBoardImage(Bitmap image)
+        public static void DetectPieces(Bitmap boardSnapshot, DarknetYOLO model, FormMain sender)
         {
-            if (image!=null)
-            {
-                _lastBoardSnap = image;
-            }
-        }
-
-        public static void DetectPieces()
-        {
-            if (_lastBoardSnap == null)
+            if (boardSnapshot == null)
                 return;
-            var cellSizeWidth = (int) _lastBoardSnap.Width / 8;
-            var cellSizeHeight = (int) _lastBoardSnap.Height / 8;
+            var cellSizeWidth = (int) boardSnapshot.Width / 8;
+            var cellSizeHeight = (int) boardSnapshot.Height / 8;
             var startCurrRow = 0;
             var startCurrColumn = 0;
             CellBoard[][] cellsBoard = new CellBoard[8][]
@@ -204,14 +194,24 @@ namespace BerldChess.Model
                 { "RookB", new Rook(ChessPlayer.Black) }
             };
             
-            DarknetYOLO darknetYolo = new DarknetYOLO();
-            darknetYolo.NMSThreshold = 0.4f;
-            darknetYolo.ConfidenceThreshold = 0.98f;
+            
+            model.NMSThreshold = 0.4f;
+            model.ConfidenceThreshold = (float)sender.numbxTolleranceRecogn.Value;
+
+            GameCreationData newData = new GameCreationData();
+            newData.WhoseTurn = sender.rbutWhiteTurn.Checked ? ChessPlayer.White : ChessPlayer.Black;
+            sender._chessPanel.IsFlipped = !sender.rbutWhiteTurn.Checked;
+            newData.CanBlackCastleKingSide = sender.chkbxCanBlackCastleKingSide.Checked;
+            newData.CanBlackCastleQueenSide = sender.chkbxCanBlackCastleQueenSide.Checked;
+            newData.CanWhiteCastleKingSide = sender.chkbxCanWhiteCastleKingSide.Checked;
+            newData.CanWhiteCastleQueenSide = sender.chkbxCanWhiteCastleQueenSide.Checked;
+            newData.EnPassant = null; // sender.chkbxEnPassant.Checked;
+            
             // split in cells
             int bitmapRow = 8;
             int chessRow = 0;
-            double minCellGrayVariance = 2;
 
+            sender.prgbarRecognition.Value = 0;
             while (bitmapRow --> 0)
             {
                 startCurrRow = cellSizeHeight * bitmapRow;
@@ -224,22 +224,21 @@ namespace BerldChess.Model
                                                     cellSizeWidth, cellSizeHeight);
                     cellsBoard[chessRow][column] = new CellBoard
                     {
-                        _bitmapColor = _lastBoardSnap.Clone(rect, PixelFormat.Format24bppRgb)
+                        _bitmapColor = boardSnapshot.Clone(rect, PixelFormat.Format24bppRgb)
                     };
                     //cellsBoard[chessRow][column]._bitmapColor
                     //    .Save(@"C:\Users\dmytro.dmytriiev\source\repos\BerldChess\Source\BerldChess\cell.bmp");
-                    List<YoloPrediction> results = darknetYolo.Predict(cellsBoard[chessRow][column]._bitmapColor, 512, 512);
+                    List<YoloPrediction> results = model.Predict(cellsBoard[chessRow][column]._bitmapColor, 512, 512);
                     if (results.Count > 0)
                         cellsBoard[chessRow][column]._recognPiece = results.First(c => Math.Abs(c.Confidence - results.Max(x => x.Confidence)) < 0.1f).Label;
-                    //cellsBoard[chessRow][column].Calculate();
-                    //if (minCellGrayVariance < cellsBoard[chessRow][column]._varianceGray)
-                    //    minCellGrayVariance = cellsBoard[chessRow][column]._varianceGray;
+                    sender.prgbarRecognition.Value = (column+1) + (chessRow)*8;
                 }
                 chessRow++;
             }
 
             ChessPiece[][] board = new ChessPiece[8][];
-            int l = 7;
+            int l = sender.rbtnWhiteSide.Enabled ? 7 :0;
+            int step = sender.rbtnWhiteSide.Enabled ? -1 :1;
             for (int i = 0; i < 8; i++)
             {
                 ChessPiece[] currentRow = new ChessPiece[8] { null, null, null, null, null, null, null, null };
@@ -253,192 +252,11 @@ namespace BerldChess.Model
                     k--;
                 }
                 board[i] = currentRow;
-                l--;
+                l = l + step;
             }
-
-            GameCreationData newData = new GameCreationData();
+            
             newData.Board = board;
-            newData.WhoseTurn = ChessPlayer.White;
-            newData.CanBlackCastleKingSide = true;
-            newData.CanBlackCastleQueenSide = true;
-            newData.CanWhiteCastleKingSide = true;
-            newData.EnPassant = null;
-
-            newChessBoard = new ChessGame(newData);
-        }
-
-        private static unsafe bool Match(byte* pointer, Color color)
-        {
-            return pointer[0] == color.B &&
-                   pointer[1] == color.G &&
-                   pointer[2] == color.R;
-        }
-
-        public static GameCreationData GetCurrentState()
-        {
-            _lastBoardSnap = GetBoardSnap();
-
-            GameCreationData data = new GameCreationData();
-
-            ChessPiece[][] chessPieces = new ChessPiece[8][];
-
-            BitmapData[] pieceData = new BitmapData[12];
-
-            for (int i = 0; i < pieceData.Length; i++)
-            {
-                pieceData[i] = LockBits(PieceImages[i]);
-            }
-
-            for (int y = 0; y < 8; y++)
-            {
-                chessPieces[y] = new ChessPiece[8];
-
-                for (int x = 0; x < 8; x++)
-                {
-                    int yOffset = (int)(y * FieldSize.Height) + 1;
-                    int xOffset = (int)(x * FieldSize.Width) + 1;
-
-                    for (int pieceI = 0; pieceI < PieceImages.Length; pieceI++)
-                    {
-
-                        for (int aY = 0; aY < FieldSize.Height; aY++)
-                        {
-                            for (int aX = 0; aX < FieldSize.Width; aX++)
-                            {
-
-
-                            }
-                        }
-
-                    }
-                }
-            }
-
-            for (int i = 0; i < pieceData.Length; i++)
-            {
-                PieceImages[i].UnlockBits(pieceData[i]);
-            }
-
-            return data;
-        }
-
-        public static Point[] GetChangedSquares(Bitmap boardSnap)
-        {
-            if (!BoardFound)
-                return null;
-
-            double fieldWidth = boardSnap.Width / (double)SideLength;
-            double fieldHeight = boardSnap.Height / (double)SideLength;
-            var changedSquares = new List<Point>();
-
-            unsafe
-            {
-                BitmapData snapData = LockBits(boardSnap);
-                BitmapData lastSnapData = LockBits(_lastBoardSnap);
-
-                var scan0 = (byte*)snapData.Scan0;
-                var lastScan0 = (byte*)lastSnapData.Scan0;
-
-                for (int y = 0; y < SideLength; y++)
-                {
-                    for (int x = 0; x < SideLength; x++)
-                    {
-                        Point border = new Point()
-                        {
-                            X = Round((x * fieldWidth + 4)),
-                            Y = Round((y * fieldHeight + 4))
-                        };
-
-                        Point center = new Point()
-                        {
-                            X = Round((x * fieldWidth + (fieldWidth / 2.0))),
-                            Y = Round((y * fieldHeight + fieldHeight * 0.73))
-                        };
-
-                        int borderColor = GetPixel(scan0, snapData.Stride, border);
-                        int centerColor = GetPixel(scan0, snapData.Stride, center);
-                        bool same = borderColor == centerColor;
-
-                        int lastBorderColor = GetPixel(lastScan0, lastSnapData.Stride, border);
-                        int lastCenterColor = GetPixel(lastScan0, lastSnapData.Stride, center);
-                        bool lastSame = lastBorderColor == lastCenterColor;
-
-                        if (same != lastSame)
-                        {
-                            changedSquares.Add(new Point(x, y));
-                        }
-                        else if (!same && centerColor != lastCenterColor)
-                        {
-                            changedSquares.Add(new Point(x, y));
-                        }
-                    }
-                }
-
-                boardSnap.UnlockBits(snapData);
-                _lastBoardSnap.UnlockBits(lastSnapData);
-            }
-
-            return changedSquares.ToArray();
-        }
-
-        private static BitmapData LockBits(Bitmap bitmap)
-        {
-            return bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-        }
-
-        public static bool CompareBitmaps(Bitmap bitmap1, Bitmap bitmap2)
-        {
-            try
-            {
-                bool equals = true;
-
-                Rectangle rect = new Rectangle(0, 0, bitmap1.Width, bitmap1.Height);
-                BitmapData bitmapData1 = bitmap1.LockBits(rect, ImageLockMode.ReadOnly, bitmap1.PixelFormat);
-                BitmapData bitmapData2 = bitmap2.LockBits(rect, ImageLockMode.ReadOnly, bitmap2.PixelFormat);
-
-                unsafe
-                {
-                    var pointer1 = (byte*)bitmapData1.Scan0.ToPointer();
-                    var pointer2 = (byte*)bitmapData2.Scan0.ToPointer();
-                    int width = rect.Width * 3;
-
-                    for (int y = 0; equals && y < rect.Height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            if (*pointer1 != *pointer2)
-                            {
-                                equals = false;
-                                break;
-                            }
-
-                            pointer1++;
-                            pointer2++;
-                        }
-
-                        pointer1 += bitmapData1.Stride - width;
-                        pointer2 += bitmapData2.Stride - width;
-                    }
-                }
-
-                bitmap1.UnlockBits(bitmapData1);
-                bitmap2.UnlockBits(bitmapData2);
-
-                return equals;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.ToString());
-            }
-
-            return false;
-        }
-
-        private static unsafe int GetPixel(byte* scan0, int stride, Point location)
-        {
-            var pointer = scan0;
-            pointer += location.Y * stride + location.X * 3;
-            return pointer[0] * 255 * 255 + pointer[1] * 255 + pointer[2];
+            _newChessBoard = new ChessGame(newData);
         }
 
         public static Bitmap GetBoardSnap()
@@ -455,16 +273,6 @@ namespace BerldChess.Model
             }
 
             return scrennshot;
-        }
-
-        private static bool IsSameColor(Color color1, Color color2, int tolerance)
-        {
-            return tolerance >= Math.Abs(color1.R - color2.R) + Math.Abs(color1.G - color2.G) + Math.Abs(color1.B - color2.B);
-        }
-
-        private static int Round(double number)
-        {
-            return (int)Math.Round(number, 0);
         }
 
         #endregion

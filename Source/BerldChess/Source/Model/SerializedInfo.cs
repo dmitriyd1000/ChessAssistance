@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
 using System.Xml.Serialization;
 
 namespace BerldChess.Model
@@ -47,6 +48,15 @@ namespace BerldChess.Model
         public EngineList EngineList { get; set; } = new EngineList();
         public ChessFont SelectedChessFont => ChessFonts[SelectedFontIndex];
         public List<ChessFont> ChessFonts { get; set; } = new List<ChessFont>();
+        public bool chkbxCanBlackCastleQueenSide { get; set; } = true;
+        public bool chkbxCanBlackCastleKingSide { get; set; } = true;
+        public bool chkbxCanWhiteCastleQueenSide { get; set; } = true;
+        public bool chkbxCanWhiteCastleKingSide { get; set; } = true;
+        public bool  chkbxEnPassant  { get; set; } = false;
+        public decimal numbxTolleranceRecogn { get; set; } = (decimal)0.98f;
+        public bool chkbxIsAutoRefresh { get; set; } = false;
+        public string txtbxRefreshTime { get; set; } = null;
+        public Rectangle? FormSnapshotBounds { get; set; } = null;
 
         [XmlElement("EngineDarkSquare")]
         public int EngineDarkSquareAsArgb
