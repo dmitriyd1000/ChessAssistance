@@ -34,11 +34,14 @@
 	        System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
 	        this._timerValidation = new System.Windows.Forms.Timer(this.components);
 	        this._timerAutoCheck = new System.Windows.Forms.Timer(this.components);
+	        this._timerAutoRecognition = new System.Windows.Forms.Timer(this.components);
 	        this._menuItemGame = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemNew = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemLoadFen = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemCopyFen = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemLoadPgn = new System.Windows.Forms.ToolStripMenuItem();
+	        this.getBoardFromScreenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+	        this.getBoardFromPrevScreenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemEngine = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemEngineSettings = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemMultiPv = new System.Windows.Forms.ToolStripMenuItem();
@@ -47,7 +50,6 @@
 	        this._menuItemDepthAnalysis = new System.Windows.Forms.ToolStripMenuItem();
 	        this.startTimeAnalysisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemCheatMode = new System.Windows.Forms.ToolStripMenuItem();
-	        this.getBoardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemAnimationTime = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemClickDelay = new System.Windows.Forms.ToolStripMenuItem();
 	        this._menuItemAutoMove = new System.Windows.Forms.ToolStripMenuItem();
@@ -85,13 +87,11 @@
 	        this.tabTreeView = new System.Windows.Forms.TabPage();
 	        this.tabPaths = new System.Windows.Forms.TreeView();
 	        this.tabSnapshotSettings = new System.Windows.Forms.TabPage();
-	        this.grbxSideTurn = new System.Windows.Forms.GroupBox();
-	        this.rbtnBlackSide = new System.Windows.Forms.RadioButton();
-	        this.rbtnWhiteSide = new System.Windows.Forms.RadioButton();
 	        this.btnCancelRecogn = new System.Windows.Forms.Button();
 	        this.prgbarRecognition = new System.Windows.Forms.ProgressBar();
 	        this.grpbxAutoRefresh = new System.Windows.Forms.GroupBox();
-	        this.label4 = new System.Windows.Forms.Label();
+	        this.lbLastRecognTime = new System.Windows.Forms.Label();
+	        this.lebel44 = new System.Windows.Forms.Label();
 	        this.label3 = new System.Windows.Forms.Label();
 	        this.txtbxRefreshTime = new System.Windows.Forms.TextBox();
 	        this.label2 = new System.Windows.Forms.Label();
@@ -129,7 +129,6 @@
 	        ((System.ComponentModel.ISupportInitialize)(this._dataGridViewMoves)).BeginInit();
 	        this.tabTreeView.SuspendLayout();
 	        this.tabSnapshotSettings.SuspendLayout();
-	        this.grbxSideTurn.SuspendLayout();
 	        this.grpbxAutoRefresh.SuspendLayout();
 	        ((System.ComponentModel.ISupportInitialize)(this.numbxTolleranceRecogn)).BeginInit();
 	        this.grbxCastle.SuspendLayout();
@@ -157,9 +156,14 @@
 	        this._timerAutoCheck.Interval = 40;
 	        this._timerAutoCheck.Tick += new System.EventHandler(this.OnTimerAutoCheckTick);
 	        // 
+	        // _timerAutoRecognition
+	        // 
+	        this._timerAutoRecognition.Interval = 10000;
+	        this._timerAutoRecognition.Tick += new System.EventHandler(this.OnTimerAutoRecognitionTick);
+	        // 
 	        // _menuItemGame
 	        // 
-	        this._menuItemGame.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this._menuItemNew, this._menuItemLoadFen, this._menuItemCopyFen, this._menuItemLoadPgn });
+	        this._menuItemGame.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this._menuItemNew, this._menuItemLoadFen, this._menuItemCopyFen, this._menuItemLoadPgn, this.getBoardFromScreenToolStripMenuItem, this.getBoardFromPrevScreenToolStripMenuItem });
 	        this._menuItemGame.Name = "_menuItemGame";
 	        this._menuItemGame.Size = new System.Drawing.Size(75, 32);
 	        this._menuItemGame.Text = "Game";
@@ -168,7 +172,7 @@
 	        // 
 	        this._menuItemNew.Name = "_menuItemNew";
 	        this._menuItemNew.ShortcutKeyDisplayString = "N";
-	        this._menuItemNew.Size = new System.Drawing.Size(350, 32);
+	        this._menuItemNew.Size = new System.Drawing.Size(394, 32);
 	        this._menuItemNew.Tag = "";
 	        this._menuItemNew.Text = "New";
 	        this._menuItemNew.Click += new System.EventHandler(this.OnMenuItemNewClick);
@@ -177,7 +181,7 @@
 	        // 
 	        this._menuItemLoadFen.Name = "_menuItemLoadFen";
 	        this._menuItemLoadFen.ShortcutKeyDisplayString = "L";
-	        this._menuItemLoadFen.Size = new System.Drawing.Size(350, 32);
+	        this._menuItemLoadFen.Size = new System.Drawing.Size(394, 32);
 	        this._menuItemLoadFen.Tag = "";
 	        this._menuItemLoadFen.Text = "Load from FEN";
 	        this._menuItemLoadFen.Click += new System.EventHandler(this.OnMenuItemLoadFenClick);
@@ -186,16 +190,32 @@
 	        // 
 	        this._menuItemCopyFen.Name = "_menuItemCopyFen";
 	        this._menuItemCopyFen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.C)));
-	        this._menuItemCopyFen.Size = new System.Drawing.Size(350, 32);
+	        this._menuItemCopyFen.Size = new System.Drawing.Size(394, 32);
 	        this._menuItemCopyFen.Text = "Copy FEN To Clipboard";
 	        this._menuItemCopyFen.Click += new System.EventHandler(this.OnMenuItemCopyFenClick);
 	        // 
 	        // _menuItemLoadPgn
 	        // 
 	        this._menuItemLoadPgn.Name = "_menuItemLoadPgn";
-	        this._menuItemLoadPgn.Size = new System.Drawing.Size(350, 32);
+	        this._menuItemLoadPgn.Size = new System.Drawing.Size(394, 32);
 	        this._menuItemLoadPgn.Text = "Load from PGN";
 	        this._menuItemLoadPgn.Click += new System.EventHandler(this.OnMenuItemLoadPgnClick);
+	        // 
+	        // getBoardFromScreenToolStripMenuItem
+	        // 
+	        this.getBoardFromScreenToolStripMenuItem.Name = "getBoardFromScreenToolStripMenuItem";
+	        this.getBoardFromScreenToolStripMenuItem.ShortcutKeyDisplayString = "G";
+	        this.getBoardFromScreenToolStripMenuItem.Size = new System.Drawing.Size(394, 32);
+	        this.getBoardFromScreenToolStripMenuItem.Text = "Get Board from new screen";
+	        this.getBoardFromScreenToolStripMenuItem.Click += new System.EventHandler(this.getBoardFromScreenToolStripMenuItem_Click);
+	        // 
+	        // getBoardFromPrevScreenToolStripMenuItem
+	        // 
+	        this.getBoardFromPrevScreenToolStripMenuItem.Name = "getBoardFromPrevScreenToolStripMenuItem";
+	        this.getBoardFromPrevScreenToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G)));
+	        this.getBoardFromPrevScreenToolStripMenuItem.Size = new System.Drawing.Size(394, 32);
+	        this.getBoardFromPrevScreenToolStripMenuItem.Text = "Get Board from prev screen";
+	        this.getBoardFromPrevScreenToolStripMenuItem.Click += new System.EventHandler(this.getBoardFromPrevScreenToolStripMenuItem_Click);
 	        // 
 	        // _menuItemEngine
 	        // 
@@ -251,18 +271,11 @@
 	        // _menuItemCheatMode
 	        // 
 	        this._menuItemCheatMode.CheckOnClick = true;
-	        this._menuItemCheatMode.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this.getBoardToolStripMenuItem, this._menuItemAnimationTime, this._menuItemClickDelay, this._menuItemAutoMove, this._menuItemCheckAuto });
+	        this._menuItemCheatMode.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { this._menuItemAnimationTime, this._menuItemClickDelay, this._menuItemAutoMove, this._menuItemCheckAuto });
 	        this._menuItemCheatMode.Name = "_menuItemCheatMode";
 	        this._menuItemCheatMode.Size = new System.Drawing.Size(237, 32);
 	        this._menuItemCheatMode.Text = "Cheat Mode";
 	        this._menuItemCheatMode.CheckedChanged += new System.EventHandler(this.OnMenuItemCheatModeCheckedChanged);
-	        // 
-	        // getBoardToolStripMenuItem
-	        // 
-	        this.getBoardToolStripMenuItem.Name = "getBoardToolStripMenuItem";
-	        this.getBoardToolStripMenuItem.Size = new System.Drawing.Size(222, 32);
-	        this.getBoardToolStripMenuItem.Text = "Get Board";
-	        this.getBoardToolStripMenuItem.Click += new System.EventHandler(this.getBoardToolStripMenuItem_Click);
 	        // 
 	        // _menuItemAnimationTime
 	        // 
@@ -472,7 +485,7 @@
 	        this._menuStripMain.Name = "_menuStripMain";
 	        this._menuStripMain.Padding = new System.Windows.Forms.Padding(5, 5, 5, 2);
 	        this._menuStripMain.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
-	        this._menuStripMain.Size = new System.Drawing.Size(1504, 39);
+	        this._menuStripMain.Size = new System.Drawing.Size(1562, 39);
 	        this._menuStripMain.TabIndex = 1;
 	        // 
 	        // _panelRight
@@ -487,7 +500,7 @@
 	        this._panelRight.Location = new System.Drawing.Point(0, 0);
 	        this._panelRight.Margin = new System.Windows.Forms.Padding(4);
 	        this._panelRight.Name = "_panelRight";
-	        this._panelRight.Size = new System.Drawing.Size(604, 1197);
+	        this._panelRight.Size = new System.Drawing.Size(579, 1277);
 	        this._panelRight.TabIndex = 4;
 	        // 
 	        // tabTables
@@ -624,7 +637,6 @@
 	        // 
 	        // tabSnapshotSettings
 	        // 
-	        this.tabSnapshotSettings.Controls.Add(this.grbxSideTurn);
 	        this.tabSnapshotSettings.Controls.Add(this.btnCancelRecogn);
 	        this.tabSnapshotSettings.Controls.Add(this.prgbarRecognition);
 	        this.tabSnapshotSettings.Controls.Add(this.grpbxAutoRefresh);
@@ -640,37 +652,6 @@
 	        this.tabSnapshotSettings.TabIndex = 2;
 	        this.tabSnapshotSettings.Text = "Snapshot Settings";
 	        this.tabSnapshotSettings.UseVisualStyleBackColor = true;
-	        // 
-	        // grbxSideTurn
-	        // 
-	        this.grbxSideTurn.Controls.Add(this.rbtnBlackSide);
-	        this.grbxSideTurn.Controls.Add(this.rbtnWhiteSide);
-	        this.grbxSideTurn.Location = new System.Drawing.Point(177, 6);
-	        this.grbxSideTurn.Name = "grbxSideTurn";
-	        this.grbxSideTurn.Size = new System.Drawing.Size(160, 93);
-	        this.grbxSideTurn.TabIndex = 9;
-	        this.grbxSideTurn.TabStop = false;
-	        this.grbxSideTurn.Text = "Side";
-	        // 
-	        // rbtnBlackSide
-	        // 
-	        this.rbtnBlackSide.Location = new System.Drawing.Point(6, 63);
-	        this.rbtnBlackSide.Name = "rbtnBlackSide";
-	        this.rbtnBlackSide.Size = new System.Drawing.Size(104, 24);
-	        this.rbtnBlackSide.TabIndex = 1;
-	        this.rbtnBlackSide.TabStop = true;
-	        this.rbtnBlackSide.Text = "Black";
-	        this.rbtnBlackSide.UseVisualStyleBackColor = true;
-	        // 
-	        // rbtnWhiteSide
-	        // 
-	        this.rbtnWhiteSide.Location = new System.Drawing.Point(6, 29);
-	        this.rbtnWhiteSide.Name = "rbtnWhiteSide";
-	        this.rbtnWhiteSide.Size = new System.Drawing.Size(104, 24);
-	        this.rbtnWhiteSide.TabIndex = 0;
-	        this.rbtnWhiteSide.TabStop = true;
-	        this.rbtnWhiteSide.Text = "White";
-	        this.rbtnWhiteSide.UseVisualStyleBackColor = true;
 	        // 
 	        // btnCancelRecogn
 	        // 
@@ -697,7 +678,8 @@
 	        // 
 	        // grpbxAutoRefresh
 	        // 
-	        this.grpbxAutoRefresh.Controls.Add(this.label4);
+	        this.grpbxAutoRefresh.Controls.Add(this.lbLastRecognTime);
+	        this.grpbxAutoRefresh.Controls.Add(this.lebel44);
 	        this.grpbxAutoRefresh.Controls.Add(this.label3);
 	        this.grpbxAutoRefresh.Controls.Add(this.txtbxRefreshTime);
 	        this.grpbxAutoRefresh.Controls.Add(this.label2);
@@ -709,14 +691,22 @@
 	        this.grpbxAutoRefresh.TabStop = false;
 	        this.grpbxAutoRefresh.Text = "Auto Refresh";
 	        // 
-	        // label4
+	        // lbLastRecognTime
 	        // 
-	        this.label4.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-	        this.label4.Location = new System.Drawing.Point(3, 96);
-	        this.label4.Name = "label4";
-	        this.label4.Size = new System.Drawing.Size(322, 23);
-	        this.label4.TabIndex = 4;
-	        this.label4.Text = "Last recognizing time, s";
+	        this.lbLastRecognTime.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+	        this.lbLastRecognTime.Location = new System.Drawing.Point(160, 96);
+	        this.lbLastRecognTime.Name = "lbLastRecognTime";
+	        this.lbLastRecognTime.Size = new System.Drawing.Size(100, 23);
+	        this.lbLastRecognTime.TabIndex = 5;
+	        // 
+	        // lebel44
+	        // 
+	        this.lebel44.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+	        this.lebel44.Location = new System.Drawing.Point(3, 96);
+	        this.lebel44.Name = "lebel44";
+	        this.lebel44.Size = new System.Drawing.Size(194, 23);
+	        this.lebel44.TabIndex = 4;
+	        this.lebel44.Text = "Last recognizing time, s";
 	        // 
 	        // label3
 	        // 
@@ -750,6 +740,7 @@
 	        this.chkbxIsAutoRefresh.TabIndex = 0;
 	        this.chkbxIsAutoRefresh.Text = "Enable";
 	        this.chkbxIsAutoRefresh.UseVisualStyleBackColor = true;
+	        this.chkbxIsAutoRefresh.CheckedChanged += new System.EventHandler(this.chkbxIsAutoRefresh_CheckedChanged);
 	        // 
 	        // label1
 	        // 
@@ -891,7 +882,7 @@
 	        this._tableLayoutPanelEvalInfos.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 23.10392F));
 	        this._tableLayoutPanelEvalInfos.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 23.10392F));
 	        this._tableLayoutPanelEvalInfos.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 3.790648F));
-	        this._tableLayoutPanelEvalInfos.Size = new System.Drawing.Size(270, 122);
+	        this._tableLayoutPanelEvalInfos.Size = new System.Drawing.Size(245, 122);
 	        this._tableLayoutPanelEvalInfos.TabIndex = 8;
 	        // 
 	        // _labelTime
@@ -902,7 +893,7 @@
 	        this._labelTime.Location = new System.Drawing.Point(0, 88);
 	        this._labelTime.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelTime.Name = "_labelTime";
-	        this._labelTime.Size = new System.Drawing.Size(135, 28);
+	        this._labelTime.Size = new System.Drawing.Size(122, 28);
 	        this._labelTime.TabIndex = 8;
 	        this._labelTime.Text = "-";
 	        this._labelTime.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -914,10 +905,10 @@
 	        this._labelNPS.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
 	        this._labelNPS.BackColor = System.Drawing.SystemColors.Control;
 	        this._labelNPS.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-	        this._labelNPS.Location = new System.Drawing.Point(135, 88);
+	        this._labelNPS.Location = new System.Drawing.Point(122, 88);
 	        this._labelNPS.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelNPS.Name = "_labelNPS";
-	        this._labelNPS.Size = new System.Drawing.Size(135, 28);
+	        this._labelNPS.Size = new System.Drawing.Size(123, 28);
 	        this._labelNPS.TabIndex = 7;
 	        this._labelNPS.Text = "-";
 	        this._labelNPS.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -933,7 +924,7 @@
 	        this._labelDepth.Location = new System.Drawing.Point(0, 28);
 	        this._labelDepth.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelDepth.Name = "_labelDepth";
-	        this._labelDepth.Size = new System.Drawing.Size(135, 28);
+	        this._labelDepth.Size = new System.Drawing.Size(122, 28);
 	        this._labelDepth.TabIndex = 6;
 	        this._labelDepth.Text = "-";
 	        this._labelDepth.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -945,10 +936,10 @@
 	        this._labelShowNodes.BackColor = System.Drawing.SystemColors.Control;
 	        this._labelShowNodes.Dock = System.Windows.Forms.DockStyle.Fill;
 	        this._labelShowNodes.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-	        this._labelShowNodes.Location = new System.Drawing.Point(135, 0);
+	        this._labelShowNodes.Location = new System.Drawing.Point(122, 0);
 	        this._labelShowNodes.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelShowNodes.Name = "_labelShowNodes";
-	        this._labelShowNodes.Size = new System.Drawing.Size(135, 28);
+	        this._labelShowNodes.Size = new System.Drawing.Size(123, 28);
 	        this._labelShowNodes.TabIndex = 4;
 	        this._labelShowNodes.Text = "Nodes";
 	        this._labelShowNodes.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -962,7 +953,7 @@
 	        this._labelShowDepth.Location = new System.Drawing.Point(0, 0);
 	        this._labelShowDepth.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelShowDepth.Name = "_labelShowDepth";
-	        this._labelShowDepth.Size = new System.Drawing.Size(135, 28);
+	        this._labelShowDepth.Size = new System.Drawing.Size(122, 28);
 	        this._labelShowDepth.TabIndex = 3;
 	        this._labelShowDepth.Text = "Depth";
 	        this._labelShowDepth.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -976,7 +967,7 @@
 	        this._labelShowTime.Location = new System.Drawing.Point(0, 60);
 	        this._labelShowTime.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelShowTime.Name = "_labelShowTime";
-	        this._labelShowTime.Size = new System.Drawing.Size(135, 28);
+	        this._labelShowTime.Size = new System.Drawing.Size(122, 28);
 	        this._labelShowTime.TabIndex = 9;
 	        this._labelShowTime.Text = "Time";
 	        this._labelShowTime.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -987,10 +978,10 @@
 	        this._labelShowNPS.BackColor = System.Drawing.SystemColors.Control;
 	        this._labelShowNPS.Dock = System.Windows.Forms.DockStyle.Fill;
 	        this._labelShowNPS.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-	        this._labelShowNPS.Location = new System.Drawing.Point(135, 60);
+	        this._labelShowNPS.Location = new System.Drawing.Point(122, 60);
 	        this._labelShowNPS.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelShowNPS.Name = "_labelShowNPS";
-	        this._labelShowNPS.Size = new System.Drawing.Size(135, 28);
+	        this._labelShowNPS.Size = new System.Drawing.Size(123, 28);
 	        this._labelShowNPS.TabIndex = 10;
 	        this._labelShowNPS.Text = "NPS";
 	        this._labelShowNPS.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -1002,10 +993,10 @@
 	        this._labelNodes.BackColor = System.Drawing.SystemColors.Control;
 	        this._labelNodes.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 	        this._labelNodes.ForeColor = System.Drawing.SystemColors.ControlText;
-	        this._labelNodes.Location = new System.Drawing.Point(135, 28);
+	        this._labelNodes.Location = new System.Drawing.Point(122, 28);
 	        this._labelNodes.Margin = new System.Windows.Forms.Padding(0);
 	        this._labelNodes.Name = "_labelNodes";
-	        this._labelNodes.Size = new System.Drawing.Size(135, 28);
+	        this._labelNodes.Size = new System.Drawing.Size(123, 28);
 	        this._labelNodes.TabIndex = 5;
 	        this._labelNodes.Text = "-";
 	        this._labelNodes.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1021,7 +1012,7 @@
 	        this._labelEvaluation.Location = new System.Drawing.Point(4, 37);
 	        this._labelEvaluation.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 	        this._labelEvaluation.Name = "_labelEvaluation";
-	        this._labelEvaluation.Size = new System.Drawing.Size(296, 48);
+	        this._labelEvaluation.Size = new System.Drawing.Size(271, 48);
 	        this._labelEvaluation.TabIndex = 3;
 	        this._labelEvaluation.Text = "+0.00";
 	        this._labelEvaluation.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1036,7 +1027,7 @@
 	        this._labelShowEvaluation.Location = new System.Drawing.Point(-1, 11);
 	        this._labelShowEvaluation.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
 	        this._labelShowEvaluation.Name = "_labelShowEvaluation";
-	        this._labelShowEvaluation.Size = new System.Drawing.Size(306, 26);
+	        this._labelShowEvaluation.Size = new System.Drawing.Size(281, 26);
 	        this._labelShowEvaluation.TabIndex = 2;
 	        this._labelShowEvaluation.Text = "Evaluation:";
 	        this._labelShowEvaluation.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1054,8 +1045,8 @@
 	        // _splitContainerBoard.Panel2
 	        // 
 	        this._splitContainerBoard.Panel2.Controls.Add(this._dataGridViewEvaluation);
-	        this._splitContainerBoard.Size = new System.Drawing.Size(897, 1197);
-	        this._splitContainerBoard.SplitterDistance = 1082;
+	        this._splitContainerBoard.Size = new System.Drawing.Size(980, 1277);
+	        this._splitContainerBoard.SplitterDistance = 1152;
 	        this._splitContainerBoard.TabIndex = 0;
 	        this._splitContainerBoard.TabStop = false;
 	        // 
@@ -1093,7 +1084,7 @@
 	        this._dataGridViewEvaluation.ShowCellErrors = false;
 	        this._dataGridViewEvaluation.ShowEditingIcon = false;
 	        this._dataGridViewEvaluation.ShowRowErrors = false;
-	        this._dataGridViewEvaluation.Size = new System.Drawing.Size(895, 109);
+	        this._dataGridViewEvaluation.Size = new System.Drawing.Size(978, 119);
 	        this._dataGridViewEvaluation.TabIndex = 1;
 	        // 
 	        // _splitContainerMain
@@ -1112,8 +1103,8 @@
 	        // 
 	        this._splitContainerMain.Panel2.Controls.Add(this._panelRight);
 	        this._splitContainerMain.Panel2MinSize = 200;
-	        this._splitContainerMain.Size = new System.Drawing.Size(1504, 1197);
-	        this._splitContainerMain.SplitterDistance = 897;
+	        this._splitContainerMain.Size = new System.Drawing.Size(1562, 1277);
+	        this._splitContainerMain.SplitterDistance = 980;
 	        this._splitContainerMain.SplitterWidth = 3;
 	        this._splitContainerMain.TabIndex = 5;
 	        // 
@@ -1122,7 +1113,7 @@
 	        this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 	        this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 	        this.BackColor = System.Drawing.SystemColors.Control;
-	        this.ClientSize = new System.Drawing.Size(1504, 1175);
+	        this.ClientSize = new System.Drawing.Size(1562, 1175);
 	        this.Controls.Add(this._splitContainerMain);
 	        this.Controls.Add(this._menuStripMain);
 	        this.DoubleBuffered = true;
@@ -1144,7 +1135,6 @@
 	        ((System.ComponentModel.ISupportInitialize)(this._dataGridViewMoves)).EndInit();
 	        this.tabTreeView.ResumeLayout(false);
 	        this.tabSnapshotSettings.ResumeLayout(false);
-	        this.grbxSideTurn.ResumeLayout(false);
 	        this.grpbxAutoRefresh.ResumeLayout(false);
 	        this.grpbxAutoRefresh.PerformLayout();
 	        ((System.ComponentModel.ISupportInitialize)(this.numbxTolleranceRecogn)).EndInit();
@@ -1163,14 +1153,17 @@
 	        this.PerformLayout();
         }
 
-        private System.Windows.Forms.GroupBox grbxSideTurn;
-        internal System.Windows.Forms.RadioButton rbtnWhiteSide;
-        internal System.Windows.Forms.RadioButton rbtnBlackSide;
+        private System.Windows.Forms.ToolStripMenuItem getBoardFromPrevScreenToolStripMenuItem;
+
+
+        private System.Windows.Forms.ToolStripMenuItem getBoardFromScreenToolStripMenuItem;
+
+        internal System.Windows.Forms.Label lbLastRecognTime;
 
         internal System.Windows.Forms.ProgressBar prgbarRecognition;
         internal System.Windows.Forms.Button btnCancelRecogn;
 
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label lebel44;
 
         private System.Windows.Forms.CheckBox chkbxIsAutoRefresh;
         private System.Windows.Forms.Label label2;
@@ -1212,7 +1205,6 @@
         private System.Windows.Forms.ToolStripMenuItem _menuItemDepthAnalysis;
         private System.Windows.Forms.ToolStripMenuItem startTimeAnalysisToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem _menuItemCheatMode;
-        private System.Windows.Forms.ToolStripMenuItem getBoardToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem _menuItemAnimationTime;
         private System.Windows.Forms.ToolStripMenuItem _menuItemClickDelay;
         private System.Windows.Forms.ToolStripMenuItem _menuItemAutoMove;
@@ -1222,7 +1214,7 @@
         private System.Windows.Forms.ToolStripMenuItem alterBoardToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem _menuItemAlterPieces;
         private System.Windows.Forms.ToolStripMenuItem _menuItemOptions;
-        private System.Windows.Forms.ToolStripMenuItem _menuItemFlipBoard;
+        internal System.Windows.Forms.ToolStripMenuItem _menuItemFlipBoard;
         private System.Windows.Forms.ToolStripMenuItem _menuItemLocalMode;
         private System.Windows.Forms.ToolStripMenuItem _menuItemHideOutput;
         private System.Windows.Forms.ToolStripMenuItem _menuItemHideArrows;
@@ -1268,6 +1260,7 @@
 
         private System.Windows.Forms.Timer _timerValidation;
         private System.Windows.Forms.Timer _timerAutoCheck;
+        private System.Windows.Forms.Timer _timerAutoRecognition;
     }
 }
 

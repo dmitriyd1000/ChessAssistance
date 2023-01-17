@@ -502,6 +502,8 @@ namespace ChessDotNet
             return fenBuilder.ToString();
         }
 
+        
+
         protected virtual string GetPosition()
         {
             StringBuilder fenBuilder = new StringBuilder();

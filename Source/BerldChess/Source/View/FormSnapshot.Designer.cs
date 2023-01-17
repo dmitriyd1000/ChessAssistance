@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace BerldChess.View
+namespace BerldChess.Source.View
 {
     partial class FormSnapshot
     {
@@ -49,7 +49,7 @@ namespace BerldChess.View
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Info;
-            this.ClientSize = new System.Drawing.Size(842, 618);
+            this.ClientSize = new System.Drawing.Size(848, 642);
             this.Controls.Add(this.label1);
             this.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.MaximizeBox = false;
@@ -61,6 +61,8 @@ namespace BerldChess.View
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Area for snapshot";
             this.TopMost = true;
+            this.Load += new System.EventHandler(this.FormSnapshot_Load);
+            this.DoubleClick += new System.EventHandler(this.FormSnapshot_DoubleClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.FormSnapshot_MouseUp);
