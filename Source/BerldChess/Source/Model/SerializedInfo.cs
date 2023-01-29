@@ -56,8 +56,8 @@ namespace BerldChess.Model
         public decimal numbxTolleranceRecogn { get; set; } = (decimal)0.98f;
         public bool chkbxIsAutoRefresh { get; set; } = false;
         public string txtbxRefreshTime { get; set; } = null;
-        public bool rbtnWhiteSide { get; set; } = true;
-        public bool rbtnBlackSide { get; set; } = false;
+        public bool rbutWhiteTurn { get; set; } = true;
+        public bool rbutBlackTurn { get; set; } = false;
         public Rectangle? FormSnapshotBounds { get; set; } = null;
 
         [XmlElement("EngineDarkSquare")]

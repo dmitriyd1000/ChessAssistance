@@ -1,25 +1,24 @@
 ﻿using ChessDotNet;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using BerldChess.View;
 using DarknetYolo;
 using ChessDotNet.Pieces;
-using System.Text;
-
 namespace BerldChess.Model
 {
-    public static class Recognizer
+    public class Recognizer
     {
         #region Fields
 
         private const int SideLength = 8;
         public static ChessGame _newChessBoard = null;
+        public static DarknetYOLO model;
 
         #endregion
 
@@ -163,10 +162,25 @@ namespace BerldChess.Model
 
         #region Methods
 
-        public static void DetectPieces(Bitmap boardSnapshot, DarknetYOLO model, FormMain sender)
+        public static void DetectPieces(Dictionary<string, object> args,  out Dictionary<string, object> result)
         {
+            // init
+            result = new Dictionary<string, object>();
+            
+            var boardSnapshot = (Bitmap)args["formSnapshot._boardSnapshot"];
+            var _chessPanel_Game_WhoseTurn = (ChessPlayer) args["_chessPanel.Game.WhoseTurn"];
+            var _chessPanel_IsFlipped = (bool) args["_chessPanel.IsFlipped"];
+            var rbutWhiteTurn_Checked = SerializedInfo.Instance.rbutWhiteTurn;
+            var chkbxCanBlackCastleKingSide_Checked = SerializedInfo.Instance.chkbxCanBlackCastleKingSide;
+            var chkbxCanBlackCastleQueenSide_Checked = SerializedInfo.Instance.chkbxCanBlackCastleQueenSide;
+            var chkbxCanWhiteCastleKingSide_Checked = SerializedInfo.Instance.chkbxCanWhiteCastleKingSide;
+            var chkbxCanWhiteCastleQueenSide_Checked = SerializedInfo.Instance.chkbxCanWhiteCastleQueenSide;
+            var numbxTolleranceRecogn_Value = (decimal) SerializedInfo.Instance.numbxTolleranceRecogn;
+            
+            var backgrndDetectPieces = (BackgroundWorker) args["backgrndDetectPieces"];
             if (boardSnapshot == null)
                 return;
+
             var cellSizeWidth = (int) boardSnapshot.Width / 8;
             var cellSizeHeight = (int) boardSnapshot.Height / 8;
             var startCurrRow = 0;
@@ -195,24 +209,22 @@ namespace BerldChess.Model
             
             
             model.NMSThreshold = 0.4f;
-            model.ConfidenceThreshold = (float)sender.numbxTolleranceRecogn.Value;
+            model.ConfidenceThreshold = (float) numbxTolleranceRecogn_Value;
 
             GameCreationData newData = new GameCreationData();
-            newData.WhoseTurn = sender.rbutWhiteTurn.Checked ? ChessPlayer.White : ChessPlayer.Black;
-            newData.CanBlackCastleKingSide = sender.chkbxCanBlackCastleKingSide.Checked;
-            newData.CanBlackCastleQueenSide = sender.chkbxCanBlackCastleQueenSide.Checked;
-            newData.CanWhiteCastleKingSide = sender.chkbxCanWhiteCastleKingSide.Checked;
-            newData.CanWhiteCastleQueenSide = sender.chkbxCanWhiteCastleQueenSide.Checked;
+            newData.WhoseTurn = rbutWhiteTurn_Checked ? ChessPlayer.White : ChessPlayer.Black;
+            newData.CanBlackCastleKingSide = chkbxCanBlackCastleKingSide_Checked;
+            newData.CanBlackCastleQueenSide = chkbxCanBlackCastleQueenSide_Checked;
+            newData.CanWhiteCastleKingSide = chkbxCanWhiteCastleKingSide_Checked;
+            newData.CanWhiteCastleQueenSide = chkbxCanWhiteCastleQueenSide_Checked;
             newData.EnPassant = null; // sender.chkbxEnPassant.Checked;
             
             // split in cells
             int bitmapRow = 8;
             int chessRow = 0;
-
-            sender.prgbarRecognition.Value = 0;
-            sender.btnCancelRecogn.Enabled = true;
-            var timer = new Stopwatch();
-            timer.Start();
+            
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             while (bitmapRow --> 0)
             {
                 startCurrRow = cellSizeHeight * bitmapRow;
@@ -227,31 +239,29 @@ namespace BerldChess.Model
                     {
                         _bitmapColor = boardSnapshot.Clone(rect, PixelFormat.Format24bppRgb)
                     };
-                    //cellsBoard[chessRow][column]._bitmapColor
-                    //    .Save(@"C:\Users\dmytro.dmytriiev\source\repos\BerldChess\Source\BerldChess\cell.bmp");
                     List<YoloPrediction> results = model.Predict(cellsBoard[chessRow][column]._bitmapColor, 512, 512);
                     if (results.Count > 0)
-                        cellsBoard[chessRow][column]._recognPiece = results.First(c => Math.Abs(c.Confidence - results.Max(x => x.Confidence)) < 0.1f).Label;
-                    sender.prgbarRecognition.Value = (column+1) + (chessRow)*8;
+                        cellsBoard[chessRow][column]._recognPiece = results.First(y => Math.Abs(y.Confidence - results.Max(x => x.Confidence)) < 0.1f).Label;
+                    backgrndDetectPieces.ReportProgress(column+1 + chessRow*7);
+                    if (backgrndDetectPieces.CancellationPending)
+                        return;
                 }
                 chessRow++;
             }
-            sender.btnCancelRecogn.Enabled = false;
-            timer.Stop();
-            TimeSpan timeTaken = timer.Elapsed;
-            sender.lbLastRecognTime.Text = timeTaken.ToString(@"m\:ss\.fff");
-            //if (sender.cancellationTokenStopRecogntion.IsCancellationRequested)
-            //    return;
+            stopwatch.Stop();
+            TimeSpan timeTaken = stopwatch.Elapsed;
+            
 
             ChessPiece[][] board = new ChessPiece[8][];
-            bool isWhiteSide = sender._chessPanel.Game.WhoseTurn == ChessPlayer.White && !sender._chessPanel.IsFlipped;
-            int r = sender.rbutWhiteTurn.Checked ? 7 :0;
-            int step_r = sender.rbutWhiteTurn.Checked ? -1 :1;
+            bool isWhiteSide = _chessPanel_Game_WhoseTurn == ChessPlayer.White && !_chessPanel_IsFlipped;
+
+            int r = rbutWhiteTurn_Checked ? 7 :0;
+            int step_r = rbutWhiteTurn_Checked ? -1 :1;
             for (int r_dest=0; r_dest < 8; r_dest++)
             {
                 ChessPiece[] currentRow = new ChessPiece[8] { null, null, null, null, null, null, null, null };
-                int c = sender.rbutWhiteTurn.Checked ? 0 : 7;
-                int step_c = sender.rbutWhiteTurn.Checked ? 1 : -1;
+                int c = rbutWhiteTurn_Checked ? 0 : 7;
+                int step_c = rbutWhiteTurn_Checked ? 1 : -1;
                 for (int c_dest=0; c_dest < 8; c_dest++)
                 {
                     if (cellsBoard[r][c]._recognPiece != null)
@@ -263,10 +273,11 @@ namespace BerldChess.Model
                 board[r_dest] = currentRow;
                 r += step_r;
             }
-
-            sender._menuItemFlipBoard.Checked=isWhiteSide&&newData.WhoseTurn == ChessPlayer.Black;
             newData.Board = board;
             _newChessBoard = new ChessGame(newData);
+            result.Add("lbLastRecognTime.Text", timeTaken.ToString(@"m\:ss\.fff"));
+            result.Add("_menuItemFlipBoard.Checked", isWhiteSide&&newData.WhoseTurn == ChessPlayer.Black);
+            result.Add("_newChessBoard", _newChessBoard);
         }
 
         public static Bitmap GetBoardSnap()

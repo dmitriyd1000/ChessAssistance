@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 using BerldChess.Model;
 using BerldChess.View;
@@ -10,7 +12,7 @@ namespace BerldChess.Source.View
     public partial class FormSnapshot : Form
     {
         #region:::::::::::::::::::::::::::::::::::::::::::Form level declarations:::::::::::::::::::::::::::::::::::::::::::
-        private static Bitmap _boardSnapshot;
+        public Bitmap _boardSnapshot;
         private int _oldPosX;
         private int _oldPosY;
         private bool _mouseDown;
@@ -38,7 +40,7 @@ namespace BerldChess.Source.View
         #endregion
 
 
-        internal static Bitmap GetScreenshot(FormSnapshot form)
+        internal  Bitmap GetScreenshot(FormSnapshot form)
         {
             //Allow 250 milliseconds for the screen to repaint itself (we don't want to include this form in the capture)
             System.Threading.Thread.Sleep(250);
@@ -120,11 +122,21 @@ namespace BerldChess.Source.View
             _boardSnapshot = GetScreenshot(this);
             if (_boardSnapshot != null)
             {
-                Recognizer.DetectPieces(_boardSnapshot, FormMain.darknetYolo,  _mInstanceRef);
-                if (Recognizer._newChessBoard != null)
-                {
-                    _mInstanceRef.ResetGame(Recognizer._newChessBoard);
-                }
+                InstanceRef.SerializeInfo();
+                InstanceRef.btnCancelRecogn.Enabled = true;
+                Dictionary<string, object> arguments = new Dictionary<string, object>();
+                arguments.Add("formSnapshot._boardSnapshot", _boardSnapshot);
+                arguments.Add("_chessPanel.Game.WhoseTurn", InstanceRef._chessPanel.Game.WhoseTurn);
+                arguments.Add("_chessPanel.IsFlipped", InstanceRef._chessPanel.IsFlipped);
+                arguments.Add("backgrndDetectPieces", InstanceRef.backgrndDetectPieces);
+                InstanceRef.backgrndDetectPieces.RunWorkerAsync(arguments);
+                
+                /*arguments.Add("numbxTolleranceRecogn.Value", InstanceRef.numbxTolleranceRecogn.Value);
+                arguments.Add("chkbxCanBlackCastleKingSide.Checked", InstanceRef.chkbxCanBlackCastleKingSide.Checked);
+                arguments.Add("chkbxCanBlackCastleQueenSide.Checked", InstanceRef.chkbxCanBlackCastleQueenSide.Checked);
+                arguments.Add("chkbxCanWhiteCastleKingSide.Checked", InstanceRef.chkbxCanWhiteCastleKingSide.Checked);
+                arguments.Add("chkbxCanWhiteCastleQueenSide.Checked", InstanceRef.chkbxCanWhiteCastleQueenSide.Checked);
+                */
             }
         }
     }

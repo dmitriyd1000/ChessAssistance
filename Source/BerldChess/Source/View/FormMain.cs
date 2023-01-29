@@ -20,19 +20,19 @@ using System.Media;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using BerldChess.Source.View;
+using DarknetYolo;
 using WindowsInput;
 using Color = System.Drawing.Color;
 using File = System.IO.File;
 using Move = ilf.pgn.Data.Move;
 using MoveType = ChessDotNet.MoveType;
-using DarknetYolo;
 
 namespace BerldChess.View
 {
+
     public partial class FormMain : Form
     {
         #region Constructors
@@ -40,11 +40,11 @@ namespace BerldChess.View
         public FormMain()
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            Recognizer.model = new DarknetYOLO();
 
             InitializeComponent();
             _panelEvaluationChart.SetDoubleBuffered();
             _dataGridViewMoves.SetDoubleBuffered();
-            darknetYolo = new DarknetYOLO();
             formSnapshot = new FormSnapshot();
             if (SerializedInfo.Instance.FormSnapshotBounds != null)
                 formSnapshot.Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;
@@ -94,7 +94,7 @@ namespace BerldChess.View
 
         #region Fields
 
-        internal static DarknetYOLO darknetYolo;
+        
         private static FormSnapshot formSnapshot;
         private bool _totalChartView;
         private volatile bool _evaluationEnabled = true;
@@ -1459,7 +1459,7 @@ namespace BerldChess.View
             _chessPanel.Invalidate();
         }
 
-        private void SerializeInfo()
+        internal void SerializeInfo()
         {
             try
             {
@@ -1489,6 +1489,8 @@ namespace BerldChess.View
                 SerializedInfo.Instance.numbxTolleranceRecogn = numbxTolleranceRecogn.Value;
                 SerializedInfo.Instance.chkbxIsAutoRefresh = chkbxIsAutoRefresh.Checked;
                 SerializedInfo.Instance.txtbxRefreshTime = txtbxRefreshTime.Text;
+                SerializedInfo.Instance.rbutWhiteTurn = rbutWhiteTurn.Checked;
+                SerializedInfo.Instance.rbutBlackTurn = rbutBlackTurn.Checked;
 
                 #endregion
 
@@ -2884,29 +2886,22 @@ namespace BerldChess.View
 
         private void btnCancelRecogn_Click(object sender, EventArgs e)
         {
-            /*if (cancellationTokenStopRecogntion!=null)
-                cancellationTokenStopRecogntion.Cancel(); */
+            backgrndDetectPieces.CancelAsync();
         }
 
-        private void getBoardFromScreenToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            formSnapshot.InstanceRef = this;
-            tabTables.SelectedTab = tabTables.TabPages["tabSnapshotSettings"];
-            //cancellationTokenStopRecogntion= new CancellationTokenSource();
-            formSnapshot.Show();
-        }
+
 
         private void OnTimerAutoRecognitionTick(object sender, EventArgs e)
         {
-            var boardSnapshot = FormSnapshot.GetScreenshot(formSnapshot);
-            if (boardSnapshot != null)
+            // -!- var boardSnapshot = FormSnapshot.GetScreenshot(formSnapshot);
+           /* if (boardSnapshot != null)
             {
-                Recognizer.DetectPieces(boardSnapshot, FormMain.darknetYolo, this);
+                //Recognizer.DetectPieces(boardSnapshot, FormMain.darknetYolo, this);
                 if (Recognizer._newChessBoard != null)
                 {
                     ResetGame(Recognizer._newChessBoard);
                 }
-            }
+            } */
         }
 
         private void chkbxIsAutoRefresh_CheckedChanged(object sender, EventArgs e)
@@ -2922,18 +2917,69 @@ namespace BerldChess.View
                 _timerAutoRecognition.Stop();
             }
         }
+        
+        private void getBoardFromScreenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formSnapshot.InstanceRef = this;
+            tabTables.SelectedTab = tabTables.TabPages["tabSnapshotSettings"];
+            formSnapshot.Show();
+        }
 
         private void getBoardFromPrevScreenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SerializedInfo.Instance.FormSnapshotBounds != null)
                 formSnapshot.Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;
-            var boardSnapshot = FormSnapshot.GetScreenshot(formSnapshot);
+            var boardSnapshot = formSnapshot.GetScreenshot(formSnapshot);
             if (boardSnapshot != null)
             {
-                Recognizer.DetectPieces(boardSnapshot, FormMain.darknetYolo, this);
-                if (Recognizer._newChessBoard != null)
-                    ResetGame(Recognizer._newChessBoard);
+                SerializeInfo();
+                Dictionary<string, object> arguments = new Dictionary<string, object>();
+                arguments.Add("formSnapshot._boardSnapshot", boardSnapshot);
+                arguments.Add("_chessPanel.Game.WhoseTurn", _chessPanel.Game.WhoseTurn);
+                arguments.Add("_chessPanel.IsFlipped", _chessPanel.IsFlipped);
+                arguments.Add("backgrndDetectPieces", backgrndDetectPieces);
+                backgrndDetectPieces.RunWorkerAsync(arguments);
+                btnCancelRecogn.Enabled = true;
             }
         }
+
+        public void backgrndDetectPieces_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            prgbarRecognition.Value = e.ProgressPercentage;
+        }
+
+        private void backgrndDetectPieces_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            btnCancelRecogn.Enabled = false;
+            prgbarRecognition.Value = 0;
+            prgbarRecognition.Update();
+            if (e.Error != null)
+            {
+                MessageBox.Show(e.Error.Message);
+            }
+            else if (e.Cancelled)
+            {
+            }
+            else
+            {
+                var result = e.Result as Dictionary<string, object>;
+                if (result.Count !=0)
+                {
+                    lbLastRecognTime.Text = (string)result["lbLastRecognTime.Text"];
+                    _menuItemFlipBoard.Checked = (bool) result["_menuItemFlipBoard.Checked"];
+                    ResetGame((ChessGame) result["_newChessBoard"]);
+                }
+            }
+        }
+
+        private void backgrndDetectPieces_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Recognizer.DetectPieces(e.Argument as Dictionary<string, object>, out Dictionary<string, object> result);
+            if (backgrndDetectPieces.CancellationPending && backgrndDetectPieces.IsBusy)
+                e.Cancel = true;
+            else
+                e.Result = result;
+        }
+
     }
 }
