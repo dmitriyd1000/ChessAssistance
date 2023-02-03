@@ -54,7 +54,6 @@ namespace BerldChess.Model
         public bool chkbxCanWhiteCastleKingSide { get; set; } = true;
         public bool  chkbxEnPassant  { get; set; } = false;
         public decimal numbxTolleranceRecogn { get; set; } = (decimal)0.98f;
-        public bool chkbxIsAutoRefresh { get; set; } = false;
         public string txtbxRefreshTime { get; set; } = null;
         public bool rbutWhiteTurn { get; set; } = true;
         public bool rbutBlackTurn { get; set; } = false;

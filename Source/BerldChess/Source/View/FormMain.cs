@@ -59,12 +59,10 @@ namespace BerldChess.View
             InitializeEvaluationGrid();
             InitializeEngine();
 
+            _prevRecongnGame = new PrevRecognGame();
         }
 
         #endregion
-
-
-        //internal  CancellationTokenSource cancellationTokenStopRecogntion;
 
         private void SetLevel()
         {
@@ -92,6 +90,17 @@ namespace BerldChess.View
             }
         }
 
+        private static T CreateDeepCopy<T>(T obj)
+        {
+            using (var ms = new MemoryStream())
+            {
+                XmlSerializer serializer = new XmlSerializer(obj.GetType());
+                serializer.Serialize(ms, obj);
+                ms.Seek(0, SeekOrigin.Begin);
+                return (T)serializer.Deserialize(ms);
+            }
+        }
+        
         #region Fields
 
         
@@ -134,6 +143,28 @@ namespace BerldChess.View
         private bool _switched;
         private readonly List<MoveArrow> _engineEvalArrows = new List<MoveArrow>();
         private MoveArrow _lastMoveArrow;
+        private PrevRecognGame _prevRecongnGame;
+
+        public class PrevRecognGame
+        {
+            public PrevRecognGame()
+            {
+                femPosition = new char?[][]
+                {
+                    new char?[8],
+                    new char?[8],
+                    new char?[8],
+                    new char?[8],
+                    new char?[8],
+                    new char?[8],
+                    new char?[8],
+                    new char?[8]
+                };
+                
+            }
+            public ChessPlayer WhoseTurn;
+            public char?[][] femPosition;
+        };
 
         #endregion
 
@@ -409,11 +440,11 @@ namespace BerldChess.View
                     engineIndex = (int)onTurn;
                 }
 
-                _vm.Engines[engineIndex].Query($"position fen {_vm.Game.GetFen()}");
+                _vm.Engines[engineIndex]?.Query($"position fen {_vm.Game.GetFen()}");
 
                 if (_analyzingMode && (_computerPlayer == ChessPlayer.None || _computerPlayer != _vm.Game.WhoseTurn))
                 {
-                    _vm.Engines[engineIndex].Query("go infinite");
+                    _vm.Engines[engineIndex]?.Query("go infinite");
                 }
                 else
                 {
@@ -1441,7 +1472,6 @@ namespace BerldChess.View
             chkbxCanWhiteCastleKingSide.Checked = SerializedInfo.Instance.chkbxCanWhiteCastleKingSide;
             chkbxEnPassant.Checked = SerializedInfo.Instance.chkbxEnPassant;
             numbxTolleranceRecogn.Value = SerializedInfo.Instance.numbxTolleranceRecogn;
-            chkbxIsAutoRefresh.Checked = SerializedInfo.Instance.chkbxIsAutoRefresh;
             txtbxRefreshTime.Text = SerializedInfo.Instance.txtbxRefreshTime;
 
             #endregion
@@ -1487,7 +1517,6 @@ namespace BerldChess.View
                 SerializedInfo.Instance.chkbxCanWhiteCastleKingSide = chkbxCanWhiteCastleKingSide.Checked;
                 SerializedInfo.Instance.chkbxEnPassant = chkbxEnPassant.Checked;
                 SerializedInfo.Instance.numbxTolleranceRecogn = numbxTolleranceRecogn.Value;
-                SerializedInfo.Instance.chkbxIsAutoRefresh = chkbxIsAutoRefresh.Checked;
                 SerializedInfo.Instance.txtbxRefreshTime = txtbxRefreshTime.Text;
                 SerializedInfo.Instance.rbutWhiteTurn = rbutWhiteTurn.Checked;
                 SerializedInfo.Instance.rbutBlackTurn = rbutBlackTurn.Checked;
@@ -2828,7 +2857,6 @@ namespace BerldChess.View
         private static Color CalculateEvaluationColor(double evaluation)
         {
             const double range = 3;
-
             if (evaluation > range)
             {
                 evaluation = range;
@@ -2890,18 +2918,12 @@ namespace BerldChess.View
         }
 
 
-
         private void OnTimerAutoRecognitionTick(object sender, EventArgs e)
         {
-            // -!- var boardSnapshot = FormSnapshot.GetScreenshot(formSnapshot);
-           /* if (boardSnapshot != null)
+            if (!backgrndDetectPieces.IsBusy)
             {
-                //Recognizer.DetectPieces(boardSnapshot, FormMain.darknetYolo, this);
-                if (Recognizer._newChessBoard != null)
-                {
-                    ResetGame(Recognizer._newChessBoard);
-                }
-            } */
+                getBoardFromPrevScreenToolStripMenuItem_Click(sender, e);
+            }
         }
 
         private void chkbxIsAutoRefresh_CheckedChanged(object sender, EventArgs e)
@@ -2927,6 +2949,7 @@ namespace BerldChess.View
 
         private void getBoardFromPrevScreenToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            _chessPanel.Focus();
             if (SerializedInfo.Instance.FormSnapshotBounds != null)
                 formSnapshot.Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;
             var boardSnapshot = formSnapshot.GetScreenshot(formSnapshot);
@@ -2966,11 +2989,34 @@ namespace BerldChess.View
                 if (result.Count !=0)
                 {
                     lbLastRecognTime.Text = (string)result["lbLastRecognTime.Text"];
-                    _menuItemFlipBoard.Checked = (bool) result["_menuItemFlipBoard.Checked"];
-                    ResetGame((ChessGame) result["_newChessBoard"]);
+                    var newGame = (ChessGame)result["_newChessBoard"];
+                    var newPosition = newGame.GetBoard();
+
+                    //additional checking -  if position didn't change from last recognition it won't updated
+                    bool IsEqual = _prevRecongnGame.WhoseTurn == newGame.WhoseTurn ? true: false;
+                    if (IsEqual)
+                    {
+                        for (var x = 0; x < 8 && IsEqual; x++)
+                        for (var y = 0; y < 8 && IsEqual; y++)
+                        {
+                            if (newPosition[x][y]?.GetFENLetter() != _prevRecongnGame.femPosition[x][y])
+                                IsEqual = false;
+                        }
+                    }
+                    if (!IsEqual)
+                    {
+                        ResetGame(newGame);
+                        _prevRecongnGame.WhoseTurn = CreateDeepCopy(newGame.WhoseTurn);
+                        for (var x = 0; x < 8; x++)
+                        for (var y = 0; y < 8; y++)
+                            _prevRecongnGame.femPosition[x][y] = newPosition[x][y]?.GetFENLetter();
+                        _menuItemFlipBoard.Checked = (bool) result["_menuItemFlipBoard.Checked"];
+                        _dataGridViewMoves.Focus();
+                    }
                 }
             }
         }
+        
 
         private void backgrndDetectPieces_DoWork(object sender, DoWorkEventArgs e)
         {

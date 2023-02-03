@@ -131,12 +131,6 @@ namespace BerldChess.Source.View
                 arguments.Add("backgrndDetectPieces", InstanceRef.backgrndDetectPieces);
                 InstanceRef.backgrndDetectPieces.RunWorkerAsync(arguments);
                 
-                /*arguments.Add("numbxTolleranceRecogn.Value", InstanceRef.numbxTolleranceRecogn.Value);
-                arguments.Add("chkbxCanBlackCastleKingSide.Checked", InstanceRef.chkbxCanBlackCastleKingSide.Checked);
-                arguments.Add("chkbxCanBlackCastleQueenSide.Checked", InstanceRef.chkbxCanBlackCastleQueenSide.Checked);
-                arguments.Add("chkbxCanWhiteCastleKingSide.Checked", InstanceRef.chkbxCanWhiteCastleKingSide.Checked);
-                arguments.Add("chkbxCanWhiteCastleQueenSide.Checked", InstanceRef.chkbxCanWhiteCastleQueenSide.Checked);
-                */
             }
         }
     }
