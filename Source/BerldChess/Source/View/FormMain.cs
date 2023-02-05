@@ -45,7 +45,7 @@ namespace BerldChess.View
             InitializeComponent();
             _panelEvaluationChart.SetDoubleBuffered();
             _dataGridViewMoves.SetDoubleBuffered();
-            formSnapshot = new FormSnapshot();
+            formSnapshot = new FormSnapshot(this);
             if (SerializedInfo.Instance.FormSnapshotBounds != null)
                 formSnapshot.Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;
 
@@ -2942,13 +2942,20 @@ namespace BerldChess.View
         
         private void getBoardFromScreenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            formSnapshot.InstanceRef = this;
             tabTables.SelectedTab = tabTables.TabPages["tabSnapshotSettings"];
+            if (formSnapshot.IsDisposed)
+                formSnapshot = new FormSnapshot(this);
             formSnapshot.Show();
         }
 
         private void getBoardFromPrevScreenToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (formSnapshot.IsDisposed)
+            {
+                MessageBox.Show("The form of area of snapshot was closed. Please make new screenshot");
+                return;
+            }
+
             _chessPanel.Focus();
             if (SerializedInfo.Instance.FormSnapshotBounds != null)
                 formSnapshot.Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;

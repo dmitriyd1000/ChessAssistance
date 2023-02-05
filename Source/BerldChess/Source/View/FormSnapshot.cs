@@ -18,18 +18,14 @@ namespace BerldChess.Source.View
         private bool _mouseDown;
 
         private FormMain _mInstanceRef;
-        public FormMain InstanceRef
-        {
-            get => _mInstanceRef;
-            set => _mInstanceRef = value;
-        }
 
         #endregion
 
         #region:::::::::::::::::::::::::::::::::::::::::::Mouse Event Handlers & Drawing Initialization:::::::::::::::::::::::::::::::::::::::::::
         
-        public FormSnapshot()
+        public FormSnapshot(FormMain parentInstance)
         {
+            _mInstanceRef = parentInstance;
             if (SerializedInfo.Instance.FormSnapshotBounds != null)
             {
                 Bounds = (Rectangle)SerializedInfo.Instance.FormSnapshotBounds;
@@ -122,14 +118,14 @@ namespace BerldChess.Source.View
             _boardSnapshot = GetScreenshot(this);
             if (_boardSnapshot != null)
             {
-                InstanceRef.SerializeInfo();
-                InstanceRef.btnCancelRecogn.Enabled = true;
+                _mInstanceRef.SerializeInfo();
+                _mInstanceRef.btnCancelRecogn.Enabled = true;
                 Dictionary<string, object> arguments = new Dictionary<string, object>();
                 arguments.Add("formSnapshot._boardSnapshot", _boardSnapshot);
-                arguments.Add("_chessPanel.Game.WhoseTurn", InstanceRef._chessPanel.Game.WhoseTurn);
-                arguments.Add("_chessPanel.IsFlipped", InstanceRef._chessPanel.IsFlipped);
-                arguments.Add("backgrndDetectPieces", InstanceRef.backgrndDetectPieces);
-                InstanceRef.backgrndDetectPieces.RunWorkerAsync(arguments);
+                arguments.Add("_chessPanel.Game.WhoseTurn", _mInstanceRef._chessPanel.Game.WhoseTurn);
+                arguments.Add("_chessPanel.IsFlipped", _mInstanceRef._chessPanel.IsFlipped);
+                arguments.Add("backgrndDetectPieces", _mInstanceRef.backgrndDetectPieces);
+                _mInstanceRef.backgrndDetectPieces.RunWorkerAsync(arguments);
                 
             }
         }
