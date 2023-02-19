@@ -276,7 +276,7 @@ namespace BerldChess.Model
             newData.Board = board;
             _newChessBoard = new ChessGame(newData);
             result.Add("lbLastRecognTime.Text", timeTaken.ToString(@"m\:ss\.fff"));
-            result.Add("_menuItemFlipBoard.Checked", isWhiteSide&&newData.WhoseTurn == ChessPlayer.Black);
+            result.Add("_menuItemFlipBoard.Checked", newData.WhoseTurn == ChessPlayer.Black);
             result.Add("_newChessBoard", _newChessBoard);
         }
 

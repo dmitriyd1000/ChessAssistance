@@ -3017,9 +3017,9 @@ namespace BerldChess.View
                         for (var x = 0; x < 8; x++)
                         for (var y = 0; y < 8; y++)
                             _prevRecongnGame.femPosition[x][y] = newPosition[x][y]?.GetFENLetter();
-                        _menuItemFlipBoard.Checked = (bool) result["_menuItemFlipBoard.Checked"];
                         _dataGridViewMoves.Focus();
                     }
+                    _menuItemFlipBoard.Checked = (bool) result["_menuItemFlipBoard.Checked"];
                 }
             }
         }
