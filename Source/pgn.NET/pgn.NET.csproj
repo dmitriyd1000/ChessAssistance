@@ -39,6 +39,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FParsec" />
+    <Reference Include="FParsecCS" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

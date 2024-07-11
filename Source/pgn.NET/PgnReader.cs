@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using ilf.pgn.Data;
-using ilf.pgn.PgnParsers;
 using Game = ilf.pgn.Data.Game;
 
 namespace ilf.pgn
@@ -23,7 +22,7 @@ namespace ilf.pgn
         /// <returns>A pgn database.</returns>
         public Database ReadFromFile(string fileName)
         {
-            var p = new Parser();
+            var p = new PgnReader();
             return p.ReadFromFile(fileName);
         }
 
@@ -34,7 +33,7 @@ namespace ilf.pgn
         /// <returns>A pgn database.</returns>
         public Database ReadFromStream(Stream stream)
         {
-            var p = new Parser();
+            var p = new PgnReader();
             return p.ReadFromStream(stream);
         }
 
@@ -45,7 +44,7 @@ namespace ilf.pgn
         /// <returns>A pgn database.</returns>
         public Database ReadFromString(string input)
         {
-            var p = new Parser();
+            var p = new PgnReader();
             return p.ReadFromString(input);
         }
 
@@ -56,7 +55,7 @@ namespace ilf.pgn
         /// <returns>A pgn database.</returns>
         public IEnumerable<Game> ReadGamesFromFile(string file)
         {
-            var p = new Parser();
+            var p = new PgnReader();
             foreach (var game in p.ReadGamesFromFile(file))
                 yield return game;
         }
@@ -68,7 +67,7 @@ namespace ilf.pgn
         /// <returns>A pgn database.</returns>
         public IEnumerable<Game> ReadGamesFromStream(Stream stream)
         {
-            var p = new Parser();
+            var p = new PgnReader();
             foreach (var game in p.ReadGamesFromStream(stream))
                 yield return game;
         }

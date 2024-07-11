@@ -242,6 +242,16 @@ namespace BerldChess.Model
                     List<YoloPrediction> results = model.Predict(cellsBoard[chessRow][column]._bitmapColor, 512, 512);
                     if (results.Count > 0)
                         cellsBoard[chessRow][column]._recognPiece = results.First(y => Math.Abs(y.Confidence - results.Max(x => x.Confidence)) < 0.1f).Label;
+                    
+                    //TODO: make here defining of empty cells
+                    /* if (cellsBoard[chessRow][column]._recognPiece != null)
+                    {
+                        var a = new Stopwatch();
+                        a.Start();
+                        cellsBoard[chessRow][column].Calculate();
+                        a.Stop();
+                        var ff = 1;
+                    } */
                     backgrndDetectPieces.ReportProgress(column+1 + chessRow*7);
                     if (backgrndDetectPieces.CancellationPending)
                         return;
@@ -253,7 +263,6 @@ namespace BerldChess.Model
             
 
             ChessPiece[][] board = new ChessPiece[8][];
-            bool isWhiteSide = _chessPanel_Game_WhoseTurn == ChessPlayer.White && !_chessPanel_IsFlipped;
 
             int r = rbutWhiteTurn_Checked ? 7 :0;
             int step_r = rbutWhiteTurn_Checked ? -1 :1;

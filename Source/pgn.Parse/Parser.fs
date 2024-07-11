@@ -1,6 +1,6 @@
 ﻿namespace ilf.pgn.PgnParsers
 
-open FParsec
+open FParser
 open System.IO
 open ilf.pgn.Exceptions
 open ilf.pgn.PgnParsers.Game
