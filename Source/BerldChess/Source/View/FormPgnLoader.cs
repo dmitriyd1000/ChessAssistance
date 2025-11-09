@@ -1,14 +1,9 @@
 ﻿using BerldChess.Model;
 using BerldChess.Properties;
+using System;
+using System.Windows.Forms;
 using ilf.pgn;
 using ilf.pgn.Data;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 
 namespace BerldChess.View
 {
@@ -42,7 +37,7 @@ namespace BerldChess.View
             try
             {
                 PgnReader reader = new PgnReader();
-                Database database = reader.ReadFromString(_textBoxPgnInput.Text);
+                Database database = reader.ReadFromFile(_textBoxPgnInput.Text);
 
                 if (database.Games.Count > 0)
                 {

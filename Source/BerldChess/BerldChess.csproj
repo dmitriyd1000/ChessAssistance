@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BerldChess</RootNamespace>
     <AssemblyName>BerldChess</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -88,6 +88,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsInput, Version=0.2.0.0, Culture=neutral, PublicKeyToken=9b287f7dc5073cad, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsInput.0.2.0.0\lib\net20\WindowsInput.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="pgn.net, Version=1.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\pgn.net.1.2.1\lib\net45\pgn.net.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -239,18 +243,6 @@
     <ProjectReference Include="..\DarknetYolo\DarknetYolo.csproj">
       <Project>{7dabb117-1fc1-42b9-a385-b3786a85b025}</Project>
       <Name>DarknetYolo</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\pgn.Data\pgn.Data.csproj">
-      <Project>{29143ecd-e5d3-41d4-9c62-81d82597d895}</Project>
-      <Name>pgn.Data</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\pgn.NET\pgn.NET.csproj">
-      <Project>{b06a9f96-62f5-49c9-bfa8-58664d9a7462}</Project>
-      <Name>pgn.NET</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\pgn.Parse\pgn.Parse.fsproj">
-      <Project>{90538968-8127-451b-945d-59707a910b63}</Project>
-      <Name>pgn.Parse</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

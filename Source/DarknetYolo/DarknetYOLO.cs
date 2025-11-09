@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Emgu.CV.Dnn;
 using Emgu.CV;
 using Emgu.CV.Util;
 using System.Drawing;
-using System.Drawing.Imaging;
 using Emgu.CV.Structure;
 using DarknetYolo.Models;
 using System.IO;
-using System.Runtime.InteropServices;
-using Emgu.CV;
 
 namespace DarknetYolo
 {

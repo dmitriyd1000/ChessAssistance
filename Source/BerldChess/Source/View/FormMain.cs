@@ -22,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using BerldChess.Source.Model;
 using BerldChess.Source.View;
 using DarknetYolo;
 using WindowsInput;
