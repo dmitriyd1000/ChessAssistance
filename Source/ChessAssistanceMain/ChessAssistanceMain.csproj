@@ -1,0 +1,79 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Update="Source\View\FormSnapshot.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\ChessPanel.cs">
+        <SubType>Component</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormEngineSettings.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormLevelDialog.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormMain.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormPgnLoader.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormSquareColor.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormBoardSetting.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormPieceSettings.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\FormPromotion.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Source\View\SmoothLabel.cs">
+        <SubType>Component</SubType>
+      </Compile>
+      <Compile Update="Resources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Resources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Source\View\FormMain.resx">
+        <DependentUpon>FormMain.cs</DependentUpon>
+        <SubType>Designer</SubType>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Source\View\FormMain.resx">
+        <DependentUpon>FormMain.cs</DependentUpon>
+        <SubType>Designer</SubType>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Resources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ChessDotNet\ChessDotNet\ChessDotNet.csproj" />
+      <ProjectReference Include="..\ChessEngineInterface\ChessEngineInterface.csproj" />
+      <ProjectReference Include="..\DarkNetYoloNET\DarkNetYoloNET.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="pgn.net" Version="1.2.1" />
+      <PackageReference Include="WindowsInput" Version="0.2.0" />
+    </ItemGroup>
+
+</Project>

@@ -24,7 +24,7 @@ using System.Windows.Forms;
 using System.Xml.Serialization;
 using BerldChess.Source.Model;
 using BerldChess.Source.View;
-using DarknetYolo;
+using DarknetYoloNet;
 using WindowsInput;
 using Color = System.Drawing.Color;
 using File = System.IO.File;
